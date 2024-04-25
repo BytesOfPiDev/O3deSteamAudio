@@ -17,6 +17,8 @@ if(NOT PAL_TRAIT_STEAMAUDIO_SUPPORTED)
     return()
 endif()
 
+include(${gem_path}/3rdParty/FindSteamAudio.cmake)
+
 # The ${gem_name}.API target declares the common interface that users of this gem should depend on in their targets
 ly_add_target(
     NAME ${gem_name}.API INTERFACE
