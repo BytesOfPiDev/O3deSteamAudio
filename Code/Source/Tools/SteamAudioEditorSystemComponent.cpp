@@ -1,13 +1,18 @@
-
-#include <AzCore/Serialization/SerializeContext.h>
 #include "SteamAudioEditorSystemComponent.h"
 
-#include <SteamAudio/SteamAudioTypeIds.h>
+#include "AzCore/Serialization/SerializeContext.h"
+
+#include "IAudioSystemEditor.h"
+#include "SteamAudio/SteamAudioTypeIds.h"
+#include "Tools/AudioSystemEditor_steamaudio.h"
 
 namespace SteamAudio
 {
-    AZ_COMPONENT_IMPL(SteamAudioEditorSystemComponent, "SteamAudioEditorSystemComponent",
-        SteamAudioEditorSystemComponentTypeId, BaseSystemComponent);
+    AZ_COMPONENT_IMPL(
+        SteamAudioEditorSystemComponent,
+        "SteamAudioEditorSystemComponent",
+        SteamAudioEditorSystemComponentTypeId,
+        BaseSystemComponent);
 
     void SteamAudioEditorSystemComponent::Reflect(AZ::ReflectContext* context)
     {
@@ -22,24 +27,28 @@ namespace SteamAudio
 
     SteamAudioEditorSystemComponent::~SteamAudioEditorSystemComponent() = default;
 
-    void SteamAudioEditorSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void SteamAudioEditorSystemComponent::GetProvidedServices(
+        AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
         BaseSystemComponent::GetProvidedServices(provided);
         provided.push_back(AZ_CRC_CE("SteamAudioEditorService"));
     }
 
-    void SteamAudioEditorSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void SteamAudioEditorSystemComponent::GetIncompatibleServices(
+        AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
         BaseSystemComponent::GetIncompatibleServices(incompatible);
         incompatible.push_back(AZ_CRC_CE("SteamAudioEditorService"));
     }
 
-    void SteamAudioEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void SteamAudioEditorSystemComponent::GetRequiredServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
         BaseSystemComponent::GetRequiredServices(required);
     }
 
-    void SteamAudioEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void SteamAudioEditorSystemComponent::GetDependentServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         BaseSystemComponent::GetDependentServices(dependent);
     }
@@ -48,12 +57,30 @@ namespace SteamAudio
     {
         SteamAudioSystemComponent::Activate();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
+        AudioControlsEditor::EditorImplPluginEventBus::Handler::BusConnect();
     }
 
     void SteamAudioEditorSystemComponent::Deactivate()
     {
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         SteamAudioSystemComponent::Deactivate();
+        AudioControlsEditor::EditorImplPluginEventBus::Handler::BusDisconnect();
+    }
+
+    void SteamAudioEditorSystemComponent::InitializeEditorImplPlugin()
+    {
+        m_editorImplPlugin = AZStd::make_unique<AudioSystemEditor_steamaudio>();
+    }
+
+    void SteamAudioEditorSystemComponent::ReleaseEditorImplPlugin()
+    {
+        m_editorImplPlugin.reset();
+    }
+
+    auto SteamAudioEditorSystemComponent::GetEditorImplPlugin()
+        -> AudioControls::IAudioSystemEditor*
+    {
+        return m_editorImplPlugin.get();
     }
 
 } // namespace SteamAudio
