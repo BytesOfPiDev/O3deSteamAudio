@@ -190,6 +190,8 @@ endif()
 ################################################################################
 # Tests
 ################################################################################
+get_property(audiosystem_gem_root GLOBAL PROPERTY "@GEMROOT:AudioSystem@")
+
 # See if globally, tests are supported
 if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
     # We globally support tests, see if we support tests on this platform for ${gem_name}.Tests
@@ -205,11 +207,14 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                     Tests
                     Source
                     Include
+                    ${audiosystem_gem_root}/Code/Source
             BUILD_DEPENDENCIES
                 PRIVATE
                     AZ::AzTest
                     AZ::AzFramework
+                    Gem::AudioSystem
                     Gem::${gem_name}.Private.Object
+                    Legacy::CryCommon
         )
 
         # Add ${gem_name}.Tests to googletest
