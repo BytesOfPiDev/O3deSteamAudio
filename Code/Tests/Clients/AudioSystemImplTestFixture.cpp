@@ -1,8 +1,7 @@
-#include "Clients/EngineTestFixture.h"
+#include "Clients/AudioSystemImplTestFixture.h"
 
 #include "AzCore/Component/Component.h"
 #include "AzFramework/Application/Application.h"
-#include "Clients/SteamAudioSystemComponent.h"
 
 #include "AzCore/Module/ModuleManagerBus.h"
 #include "AzCore/Script/ScriptSystemComponent.h"
@@ -18,7 +17,6 @@
 
 #include "AzFramework/Asset/CustomAssetTypeComponent.h"
 #include "AzFramework/Spawnable/SpawnableSystemComponent.h"
-#include "Clients/SteamAudioSystemComponent.h"
 
 class EngineTestApplication : public AzFramework::Application
 {
@@ -58,7 +56,7 @@ protected:
     }
 };
 
-void EngineTestFixture::SetUp()
+void AudioSystemImplTestFixture::SetUp()
 {
     m_app = AZStd::make_unique<EngineTestApplication>();
 
@@ -80,7 +78,7 @@ void EngineTestFixture::SetUp()
     AZ_TEST_ASSERT(serializeContext != nullptr);
 }
 
-void EngineTestFixture::TearDown()
+void AudioSystemImplTestFixture::TearDown()
 {
     static_cast<AzFramework::Application*>(m_app.get())->Stop();
 }

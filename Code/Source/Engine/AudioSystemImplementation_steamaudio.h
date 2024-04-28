@@ -6,6 +6,7 @@
 #include "AudioAllocators.h"
 #include "AzCore/RTTI/RTTIMacros.h"
 #include "AzCore/RTTI/TypeInfoSimple.h"
+#include "Engine/ISoundEngine.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystemImplementation.h"
 
@@ -179,5 +180,7 @@ namespace SteamAudio
 
         AZ::IO::Path m_soundBankFolder{};
         AZ::IO::Path m_localizedSoundBankFolder{};
+
+        AZStd::unique_ptr<IEngine> m_soundEngine{};
     };
 } // namespace SteamAudio

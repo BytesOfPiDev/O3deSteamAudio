@@ -1,22 +1,21 @@
 #pragma once
 
-#include "AzCore/UnitTest/UnitTest.h"
 #include "AzCore/Component/ComponentApplication.h"
+#include "AzCore/UnitTest/UnitTest.h"
 
-class EngineTestFixture
+class AudioSystemImplTestFixture
     : public UnitTest::TraceBusRedirector
     , public testing::Test
 {
 public:
-    AZ_DISABLE_COPY_MOVE(EngineTestFixture);
+    AZ_DISABLE_COPY_MOVE(AudioSystemImplTestFixture);
 
-    EngineTestFixture() = default;
-    virtual ~EngineTestFixture() = default;
-    
+    AudioSystemImplTestFixture() = default;
+    ~AudioSystemImplTestFixture() override = default;
+
     void SetUp() override;
     void TearDown() override;
-    
-    private:
+
+private:
     AZStd::unique_ptr<AZ::ComponentApplication> m_app{};
-    
 };

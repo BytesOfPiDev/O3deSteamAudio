@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/IEngine.h"
+#include "Engine/ISoundEngine.h"
 
 namespace SteamAudio
 {

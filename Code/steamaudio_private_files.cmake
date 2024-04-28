@@ -11,7 +11,7 @@ set(FILES
     Source/Engine/Common_steamaudio.h
     Source/Engine/Configuration.cpp
     Source/Engine/Configuration.h
-    Source/Engine/Engine.cpp
-    Source/Engine/Engine.h
-    Source/Engine/IEngine.h
+    Source/Engine/SoundEngine.cpp
+    Source/Engine/SoundEngine.h
+    Source/Engine/ISoundEngine.h
 )

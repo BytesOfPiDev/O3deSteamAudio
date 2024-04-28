@@ -6,7 +6,6 @@
 #include <SteamAudio/SteamAudioBus.h>
 
 #include "Engine/AudioSystemImplementation_steamaudio.h"
-#include "Engine/Engine.h"
 #include "IAudioSystem.h"
 
 namespace SteamAudio
@@ -55,10 +54,9 @@ namespace SteamAudio
         // AZTickBus interface implementation
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
         ////////////////////////////////////////////////////////////////////////
-        
-        private:
-        AudioSystemImpl_steamaudio m_audioSystemImpl{"linux"};
-        SteamAudioEngine m_steamAudioEngine{};
+
+    private:
+        AudioSystemImpl_steamaudio m_audioSystemImpl{ "linux" };
     };
 
 } // namespace SteamAudio

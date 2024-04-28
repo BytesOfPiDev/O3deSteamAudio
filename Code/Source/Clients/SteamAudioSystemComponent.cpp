@@ -91,9 +91,6 @@ namespace SteamAudio
 
     auto SteamAudioSystemComponent::Initialize() -> bool
     {
-        AZ_Verify(
-            m_steamAudioEngine.Initialize().IsSuccess(), "Failed to initialize MiniAudio engine!");
-
         Audio::SystemRequest::Initialize initRequest;
         AZ::Interface<Audio::IAudioSystem>::Get()->PushRequestBlocking(AZStd::move(initRequest));
 

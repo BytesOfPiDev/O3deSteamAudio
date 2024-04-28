@@ -155,6 +155,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         BUILD_DEPENDENCIES
             PUBLIC
                 Gem::${gem_name}.Editor.API
+                Gem::AudioSystem.Editor
             PRIVATE
                 Gem::${gem_name}.Editor.Private.Object
     )

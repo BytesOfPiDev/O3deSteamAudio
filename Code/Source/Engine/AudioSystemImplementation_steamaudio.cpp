@@ -105,12 +105,29 @@ namespace SteamAudio
 
     auto AudioSystemImpl_steamaudio::Initialize() -> Audio::EAudioRequestStatus
     {
-        return Audio::EAudioRequestStatus::Failure;
+        auto soundEngine{ AZ::Interface<IEngine>::Get() };
+
+        if (!soundEngine)
+        {
+            return Audio::EAudioRequestStatus::Failure;
+        }
+
+        if (!soundEngine->Initialize())
+        {
+            return Audio::EAudioRequestStatus::Failure;
+        }
+
+        return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::ShutDown() -> Audio::EAudioRequestStatus
     {
-        return Audio::EAudioRequestStatus::Failure;
+        if (!AZ::Interface<IEngine>::Get())
+        {
+            return Audio::EAudioRequestStatus::Failure;
+        }
+
+        return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::Release() -> Audio::EAudioRequestStatus
@@ -131,7 +148,7 @@ namespace SteamAudio
         -> Audio::EAudioRequestStatus
     {
         AZLOG_INFO("BopAudio: RegisterAudioObject. [objectName: %s.].", objectName);
-        return Audio::EAudioRequestStatus::Success;
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::UnregisterAudioObject(

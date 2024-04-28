@@ -4,7 +4,7 @@ set(FILES
 
     Tests/Clients/Mocks/MockEngine.h
 
-    Tests/Clients/EngineTestFixture.cpp
-    Tests/Clients/EngineTestFixture.h
+    Tests/Clients/AudioSystemImplTestFixture.cpp
+    Tests/Clients/AudioSystemImplTestFixture.h
     Tests/Clients/SteamAudioTestEnvironment.cpp
 )
