@@ -1,7 +1,11 @@
 #include "SteamAudioEditorSystemComponent.h"
 
+#include "AzCore/Debug/Trace.h"
+#include "AzCore/IO/FileIO.h"
 #include "AzCore/Serialization/SerializeContext.h"
 
+#include "AzCore/Utils/Utils.h"
+#include "Engine/Configuration.h"
 #include "IAudioSystemEditor.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 #include "Tools/AudioSystemEditor_steamaudio.h"
@@ -51,6 +55,27 @@ namespace SteamAudio
         [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         BaseSystemComponent::GetDependentServices(dependent);
+    }
+
+    void SteamAudioEditorSystemComponent::Init()
+    {
+        SteamAudioSystemComponent::Init();
+
+        auto const projectSrcPath = []() -> AZ::IO::FixedMaxPath
+        {
+            AZ::IO::FixedMaxPath path{ AZ::Utils::GetProjectPath() };
+            path /= "Sounds/steamaudio_project";
+
+            return path;
+        }();
+
+        AZ::IO::FileIOBase::GetInstance()->SetAlias(ProjectSrcAlias, projectSrcPath.c_str());
+
+        AZ_Info(
+            TYPEINFO_Name(),
+            "Registering Alias: [%s: %s]\n",
+            ProjectSrcAlias,
+            projectSrcPath.c_str());
     }
 
     void SteamAudioEditorSystemComponent::Activate()

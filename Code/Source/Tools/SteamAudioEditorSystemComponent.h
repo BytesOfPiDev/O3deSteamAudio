@@ -34,6 +34,7 @@ namespace SteamAudio
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         // AZ::Component
+        void Init() override;
         void Activate() override;
         void Deactivate() override;
 

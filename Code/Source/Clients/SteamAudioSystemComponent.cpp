@@ -46,7 +46,7 @@ namespace SteamAudio
 
         AZ::IO::FileIOBase::GetInstance()->SetAlias(BanksAlias, banksPath.c_str());
         AZ::IO::FileIOBase::GetInstance()->SetAlias(EventsAlias, eventsPath.c_str());
-        AZ::IO::FileIOBase::GetInstance()->SetAlias(ProjectAlias, projectPath.c_str());
+        AZ::IO::FileIOBase::GetInstance()->SetAlias(RuntimePath, projectPath.c_str());
         {
         }
     }
@@ -104,6 +104,8 @@ namespace SteamAudio
 
     void SteamAudioSystemComponent::Init()
     {
+        RegisterFileAliases();
+
         if (cl_enable_steamaudio_soundengine)
         {
             Audio::Gem::EngineRequestBus::Handler::BusConnect();

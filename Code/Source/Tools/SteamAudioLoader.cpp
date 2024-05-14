@@ -21,13 +21,26 @@ namespace SteamAudio
     {
         m_audioSystemEditor = audioSystemEditor;
 
-        AZLOG_INFO("SteamAudioLoader is loading event controls...");
-        LoadControlsInFolder(AZ::IO::Path(EventsAlias).String());
+        auto* const fileIo{ AZ::IO::FileIOBase::GetInstance() };
 
-        AZLOG_INFO(
-            "SteamAudioLoader is loading soundbank control from '%s'",
-            GetBanksRootPath().String().c_str());
-        LoadSoundBanks(GetBanksRootPath().String(), "", false);
+        auto const eventsFolder = [&fileIo]() -> AZ::IO::FixedMaxPath
+        {
+            AZStd::optional<AZ::IO::FixedMaxPath> const result{ fileIo->ResolvePath(EventsAlias) };
+
+            return result.value_or("");
+        }();
+
+        auto const banksFolder = [&fileIo]() -> AZ::IO::FixedMaxPath
+        {
+            AZStd::optional<AZ::IO::FixedMaxPath> const result{ fileIo->ResolvePath(RuntimePath) };
+
+            return result.value_or("");
+        }();
+
+        AZLOG_INFO("SteamAudioLoader is loading event controls from '%s'...", eventsFolder.c_str());
+        LoadControlsInFolder(eventsFolder.String());
+
+        LoadSoundBanks(banksFolder.String(), AudioStrings::BanksFolder, false);
     }
 
     void SteamAudioLoader::LoadControlsInFolder(AZStd::string_view const folderPath)
@@ -154,18 +167,31 @@ namespace SteamAudio
     void SteamAudioLoader::LoadSoundBanks(
         AZStd::string const& rootFolder, AZStd::string const& subPath, bool isLocalized)
     {
-        AZ::IO::FixedMaxPath searchPath(rootFolder);
-        searchPath /= subPath;
+        auto const searchPath = [&]()
+        {
+            AZ::IO::FixedMaxPath result(rootFolder);
+            result /= subPath;
+            return result;
+        }();
+
+        AZ_Info("SteamAudioLoader", "Checking soundbanks in '%s'...", searchPath.c_str());
+
         auto foundFiles = Audio::FindFilesInPath(searchPath.Native(), "*");
+
+        AZ_Info("SteamAudioLoader", "Found '%i' files.", foundFiles.size());
+
         bool isLocalizedLoaded = isLocalized;
 
         for (auto const& filePath : foundFiles)
         {
+            AZLOG_INFO("Loading soundbank file '%s'.", filePath.c_str());
+
             AZ_Assert(
                 AZ::IO::FileIOBase::GetInstance()->Exists(filePath.c_str()),
                 "FindFiles found file '%s' but FileIO says it doesn't exist!",
                 filePath.c_str());
-            AZ::IO::PathView fileName = filePath.Filename();
+
+            AZ::IO::PathView const fileName = filePath.Filename();
 
             if (AZ::IO::FileIOBase::GetInstance()->IsDirectory(filePath.c_str()))
             {

@@ -17,7 +17,10 @@ namespace SteamAudio
     static constexpr auto BanksAlias = "@soundbanks@";
     static constexpr auto SoundsAlias = "@soundbanks@";
     static constexpr auto EventsAlias = "@audioevents@";
-    static constexpr auto ProjectAlias = "@audioproject@";
+
+    static constexpr auto RuntimePath = "@audioproject@";
+
+    static constexpr auto ProjectSrcAlias = "@audioprojectsrc@";
 
     static constexpr auto ExternalSourcesPath = "external";
     static constexpr auto SoundbankExtension = ".soundbank";

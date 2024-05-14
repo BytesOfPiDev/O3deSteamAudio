@@ -570,7 +570,7 @@ namespace SteamAudio
     }
     auto AudioSystemEditor_steamaudio::GetDataPath() const -> AZ::IO::FixedMaxPath
     {
-        return { ProjectAlias };
+        return { RuntimePath };
     }
 
     void AudioSystemEditor_steamaudio::ConnectionRemoved(
