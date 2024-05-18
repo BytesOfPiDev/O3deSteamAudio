@@ -1,0 +1,9 @@
+<SteamAudioDocument>
+	<Event Name="hello_thar" Version="1">
+		<Sound Name="sfx/these_chocodiles.raw" />
+		<Sound Name="sfx/francine_these_chocodiles.raw" />
+		<Task Type="StartTrigger" Value="oh_my_god_these_chocodiles" />
+		<Task Type="StopTrigger" Value="francine_oh_my_god" />
+		<Var Name="Volume" Value="1.0" />
+	</Event>
+</SteamAudioDocument>

@@ -19,20 +19,15 @@ endif()
 
 include(FetchContent)
 
-FetchContent_Declare(
-    miniaudio_v11_21
-    GIT_REPOSITORY https://github.com/mackron/miniaudio.git
-)
-
-FetchContent_Populate(miniaudio_v11_21)
-
 include(${gem_path}/3rdParty/FindSteamAudio.cmake)
-
-
 
 ly_add_target(
     NAME ${gem_name}.MiniAudio.API INTERFACE
     NAMESPACE Gem
+    BUILD_DEPENDENCIES
+      INTERFACE
+        3rdParty::miniaudio
+
 )
 
 target_include_directories(${gem_name}.MiniAudio.API SYSTEM INTERFACE ${miniaudio_v11_21_SOURCE_DIR})
@@ -50,7 +45,8 @@ ly_add_target(
             Include
     BUILD_DEPENDENCIES
         INTERFACE
-           AZ::AzCore
+            AZ::AzCore
+            ${gem_name}.MiniAudio.API
 )
 
 # The ${gem_name}.Private.Object target is an internal target
@@ -69,12 +65,12 @@ ly_add_target(
             Source
     BUILD_DEPENDENCIES
         PUBLIC
+            ${gem_name}.MiniAudio.API
             AZ::AzCore
             AZ::AzFramework
             Gem::AudioSystem
             3rdParty::SteamAudio
-        PRIVATE
-            ${gem_name}.MiniAudio.API
+
 )
 
 # Here add ${gem_name} target, it depends on the Private Object library and Public API interface
@@ -97,7 +93,7 @@ ly_add_target(
 )
 
 ly_add_target(
-    NAME ${gem_name}.Scene.Static STATIC 
+    NAME ${gem_name}.Scene.Static STATIC
     NAMESPACE Gem
     FILES_CMAKE
         steamaudio_scene_files.cmake
@@ -112,7 +108,7 @@ ly_add_target(
 )
 
 
- ly_add_target(
+ly_add_target(
       NAME ${gem_name}.Scene ${PAL_TRAIT_MONOLITHIC_DRIVEN_MODULE_TYPE}
       NAMESPACE Gem
       FILES_CMAKE
@@ -188,6 +184,9 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         BUILD_DEPENDENCIES
             PUBLIC
                 ${gem_name}.Private.Object
+                ${gem_name}.MiniAudio.API
+                AZ::AzFramework
+                AZ::AzCore
                 AZ::AssetBuilderSDK
                 AZ::AzToolsFramework
                 Gem::AudioSystem.Editor
@@ -208,8 +207,13 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 Include
         BUILD_DEPENDENCIES
             PUBLIC
+                AZ::AzCore
+                AZ::AzFramework
                 Gem::${gem_name}.Editor.API
                 Gem::AudioSystem.Editor
+                Gem::AudioSystem
+                Legacy::CryCommon
+                AZ::AzToolsFramework
             PRIVATE
                 Gem::${gem_name}.Editor.Private.Object
     )
@@ -230,8 +234,8 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
   # By default, we will specify that the above target ${gem_name} would be used by
   # Tool and Builder type targets when this gem is enabled.  If you don't want it
   # active in Tools or Builders by default, delete one of both of the following lines:
-    ly_create_alias(NAME ${gem_name}.Tools    NAMESPACE Gem TARGETS Gem::${gem_name}.Editor Gem::${gem_name}.Scene)
-    ly_create_alias(NAME ${gem_name}.Builders NAMESPACE Gem TARGETS Gem::${gem_name}.Editor Gem::${gem_name}.Scene)
+  ly_create_alias(NAME ${gem_name}.Tools    NAMESPACE Gem TARGETS Gem::${gem_name}.Editor Gem::${gem_name}.Scene)
+  ly_create_alias(NAME ${gem_name}.Builders NAMESPACE Gem TARGETS Gem::${gem_name}.Editor Gem::${gem_name}.Scene)
 
   # For the Tools and Builders variants of ${gem_name} Gem, an alias to the ${gem_name}.Editor API target will be made
   ly_create_alias(NAME ${gem_name}.Tools.API NAMESPACE Gem TARGETS Gem::${gem_name}.Editor.API)
@@ -242,9 +246,9 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
   o3de_add_variant_dependencies_for_gem_dependencies(GEM_NAME ${gem_name} VARIANTS Tools Builders)
 endif()
 
-# ###############################################################################
+# # # # # # # # # # # # # # # # # ###############################################################
 # Tests
-# ###############################################################################
+# # # # # # # # # # # # # # # # # ###############################################################
 get_property(audiosystem_gem_root GLOBAL PROPERTY "@GEMROOT:AudioSystem@")
 
 # See if globally, tests are supported
@@ -264,7 +268,8 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                     Include
                     ${audiosystem_gem_root}/Code/Source
             BUILD_DEPENDENCIES
-                PRIVATE
+                PUBLIC
+                    AZ::AzCore
                     AZ::AzTest
                     AZ::AzFramework
                     Gem::AudioSystem
@@ -296,8 +301,12 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                         Include
                 BUILD_DEPENDENCIES
                     PRIVATE
-                        AZ::AzTest
                         Gem::${gem_name}.Editor.Private.Object
+                        AZ::AzCore
+                        AZ::AzFramework
+                        AZ::AzTest
+                        AZ::AzToolsFrameworkTestCommon
+                        Legacy::CryCommon
             )
 
       # Add ${gem_name}.Editor.Tests to googletest

@@ -2,7 +2,6 @@
 
 #include "AzCore/IO/Path/Path.h"
 #include "AzCore/XML/rapidxml.h"
-#include "Engine/Configuration.h"
 #include "IAudioSystemEditor.h"
 
 #include "Tools/AudioSystemControl_steamaudio.h"
@@ -34,4 +33,4 @@ namespace SteamAudio
         AudioControls::IAudioSystemEditor* m_audioSystemEditor = nullptr;
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

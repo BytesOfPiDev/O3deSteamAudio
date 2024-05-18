@@ -1,19 +1,39 @@
 #include "Engine/SoundEngine.h"
 
+#include "AudioFileUtils.h"
+#include "AzCore/Asset/AssetCommon.h"
+#include "AzCore/Asset/AssetManager.h"
+#include "AzCore/Asset/AssetManagerBus.h"
+#include "AzCore/IO/FileIO.h"
+#include "AzCore/Interface/Interface.h"
+#include "Engine/AudioEvent.h"
+#include "Engine/AudioEventAsset.h"
+#include "Engine/Common_steamaudio.h"
+#include "Engine/ISoundEngine.h"
+#include "Engine/Id.h"
+#include "IAudioSystem.h"
 #include "phonon.h"
 #include "phonon_version.h"
 
 #include "AudioAllocators.h"
-#include "AzCore/Console/ILogger.h"
 #include "AzCore/Outcome/Outcome.h"
 #include "AzFramework/Entity/GameEntityContextBus.h"
 
 #include "Engine/Configuration.h"
 
 #define MINIAUDIO_IMPLEMENTATION
-#include "miniaudio.h"
-#undef MINIAUDIO_IMPLEMENTATION
+#include "SteamAudio/MiniAudio.h"
 
+void MaDataCallback(ma_device* pDevice, void* pOutput, void const* pInput, ma_uint32 frameCount)
+{
+    AZ_UNUSED_4(pDevice, pOutput, pInput, frameCount);
+
+    // auto* engine = static_cast<SteamAudio::ISoundEngine*>(pDevice->pUserData);
+
+    // ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, nullptr);
+};
+
+/*
 static auto my_malloc(size_t size, size_t alignment) -> void*
 {
     return azmalloc(size, alignment, Audio::AudioImplAllocator);
@@ -23,18 +43,7 @@ static void my_free(void* block)
 {
     azfree(block, Audio::AudioImplAllocator);
 }
-
-static auto GetDecoder() -> ma_decoder&
-{
-    static ma_decoder instance{};
-    return instance;
-}
-
-static auto GetDevice() -> ma_device&
-{
-    static ma_device instance{};
-    return instance;
-}
+*/
 
 [[maybe_unused]] static auto ma_result_from_IPLerror(IPLerror error) -> ma_result
 {
@@ -330,102 +339,231 @@ MA_API auto ma_steamaudio_binaural_node_set_direction(
 
 namespace SteamAudio
 {
-
     auto SteamAudioEngine::Initialize() -> EngineNullOutcome
     {
+        AZ::Interface<ISoundEngine>::Register(this);
         m_contextSettings.version = STEAMAUDIO_VERSION;
-        m_context = nullptr;
 
-        IPLerror errorCode = iplContextCreate(&m_contextSettings, &m_context);
-        if (errorCode)
+        if (auto const outcome{ InitMiniAudio() }; !outcome.IsSuccess())
         {
-            return AZ::Failure("Unable to create Steam Audio context. Error code: %d");
+            return AZ::Failure(AZStd::string::format(
+                "Failed to initialize miniaudio: %s", outcome.GetError().c_str()));
         }
 
-        m_contextSettings.allocateCallback = my_malloc;
-        m_contextSettings.freeCallback = my_free;
-
-        m_hrtfSettings.type = IPL_HRTFTYPE_DEFAULT;
-        m_hrtfSettings.volume = 1.0f;
-
-        m_audioSettings.samplingRate = DefaultSampleRate;
-        m_audioSettings.frameSize = DefaultFrameSize;
-
-        iplHRTFCreate(m_context, &m_audioSettings, &m_hrtfSettings, &m_hrtf);
-
-        m_sceneSettings.type = IPL_SCENETYPE_DEFAULT;
-        iplSceneCreate(m_context, &m_sceneSettings, &m_scene);
-
-        m_simulationSettings.flags = IPL_SIMULATIONFLAGS_DIRECT;
-        m_simulationSettings.sceneType = IPL_SCENETYPE_DEFAULT;
-
-        iplSimulatorCreate(m_context, &m_simulationSettings, &m_simulator);
-
-        iplSimulatorSetScene(m_simulator, m_scene);
-        iplSimulatorCommit(m_simulator);
-
-        m_sharedInputs.listener = m_listenerCoordinates;
-        iplSimulatorSetSharedInputs(m_simulator, IPL_SIMULATIONFLAGS_DIRECT, &m_sharedInputs);
+        LoadNativeEvents();
+        LoadEventAssets();
 
         AZ_Info(TYPEINFO_Name(), "Steam Audio Engine initialized.");
         return AZ::Success();
     }
 
-    auto SteamAudioEngine::Shutdown() -> EngineNullOutcome
+    void SteamAudioEngine::LoadNativeEvents()
     {
-        if (m_context)
+        auto muteAllEvent{ AZStd::make_unique<SaEvent>(
+            SaEvent::StartFunc{ [soundEngine = this]()
+                                {
+                                    soundEngine->MuteAll();
+                                } },
+            SaEvent::StopFunc{}) };
+
+        auto unmuteAll{ AZStd::make_unique<SaEvent>(
+            SaEvent::StartFunc{ [soundEngine = this]()
+                                {
+                                    soundEngine->UnmuteAll();
+                                } },
+            SaEvent::StopFunc{}) };
+
+        auto getFocusEvent{ AZStd::make_unique<SaEvent>(
+            SaEvent::StartFunc{ [soundEngine = this]()
+                                {
+                                    soundEngine->GetFocus();
+                                } },
+            SaEvent::StopFunc{}) };
+
+        auto loseFocusEvent{ AZStd::make_unique<SaEvent>(
+            SaEvent::StartFunc{ [soundEngine = this]()
+                                {
+                                    soundEngine->LoseFocus();
+                                } },
+            SaEvent::StopFunc{}) };
+
+        [this]()
         {
-            iplContextRelease(&m_context);
-            m_context = nullptr;
+            auto doNothingEvent{ AZStd::make_unique<SaEvent>(
+                SaEvent::StartFunc{ [soundEngine = this]()
+                                    {
+                                        soundEngine->DoNothing();
+                                    } },
+                SaEvent::StopFunc{}) };
+
+            m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::DoNothingEventName),
+                              AZStd::move(doNothingEvent) });
+        }();
+
+        [this]()
+        {
+            auto helloWorldEvent{ AZStd::make_unique<SaEvent>(
+                SaEvent::StartFunc{ [soundEngine = this]()
+                                    {
+                                        soundEngine->DoNothing();
+                                    } },
+                SaEvent::StopFunc{}) };
+
+            m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::HelloWorldEventName),
+                              AZStd::move(helloWorldEvent) });
+        }();
+
+        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::MuteAllEventName),
+                          AZStd::move(muteAllEvent) });
+        muteAllEvent = nullptr;
+
+        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::UnmuteAllEventName),
+                          AZStd::move(unmuteAll) });
+        unmuteAll = nullptr;
+
+        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::GetFocusEventName),
+                          AZStd::move(getFocusEvent) });
+        getFocusEvent = nullptr;
+
+        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::LoseFocusEventName),
+                          AZStd::move(loseFocusEvent) });
+        loseFocusEvent = nullptr;
+    }
+
+    void SteamAudioEngine::LoadEventAssets()
+    {
+        auto const* const fileIo{ AZ::IO::FileIOBase::GetInstance() };
+
+        auto const resolvedPathOutcome{ fileIo->ResolvePath(EventsAlias) };
+
+        if (resolvedPathOutcome.has_value())
+        {
+            auto const files{ Audio::FindFilesInPath(
+                resolvedPathOutcome.value().Native(), SaEventAsset::ProductExtensionWildcard) };
+
+            AZ_Info(
+                TYPEINFO_Name(),
+                "Found %lu events at '%s'",
+                files.size(),
+                resolvedPathOutcome.value().c_str());
+
+            for (auto const& path : files)
+            {
+                AZ::Data::AssetType const assetType{ SaEventAsset::TYPEINFO_Uuid() };
+                AZ::Data::AssetId assetIdResult{};
+                AZ::Data::AssetCatalogRequestBus::BroadcastResult(
+                    assetIdResult,
+                    &AZ::Data::AssetCatalogRequests::GetAssetIdByPath,
+                    path.c_str(),
+                    assetType,
+                    true);
+
+                if (!assetIdResult.IsValid())
+                {
+                    continue;
+                }
+
+                auto& assetManager{ AZ::Data::AssetManager::Instance() };
+                auto asset{ assetManager.GetAsset<SaEventAsset>(
+                    assetIdResult,
+                    AZ::Data::AssetLoadBehavior::QueueLoad,
+                    AZ::Data::AssetLoadParameters{}) };
+
+                asset.BlockUntilLoadComplete();
+
+                auto event{ AZStd::make_unique<SaEvent>() };
+
+                m_eventAssets.insert({ asset->GetEventId(), asset });
+                AZ_Warning(
+                    TYPEINFO_Name(),
+                    false,
+                    "LoadEventAsset [Name: %s | Id: %lu",
+                    asset->GetEventName().c_str(),
+                    asset->GetEventId());
+
+                // FIXME: Actually add an valid event
+                m_events.insert({ asset->GetEventId(), AZStd::move(event) });
+                event = nullptr;
+            }
         }
 
-        ma_device_uninit(&GetDevice());
-        ma_decoder_uninit(&GetDecoder());
+        AZ_Warning(
+            TYPEINFO_Name(), resolvedPathOutcome.has_value(), "Failed to resolve events alias.");
+    }
+
+    auto SteamAudioEngine::FindEvent(SaEventId eventId) const
+        -> AZ::Outcome<SaEvent*, AZStd::string>
+    {
+        auto iter{ m_events.find(eventId) };
+        if (iter == AZStd::end(m_events))
+        {
+            static constexpr auto errorFormat{
+                "The event id '%llu' does not exist. Known Events: %lu"
+            };
+            return AZ::Failure(AZStd::string::format(
+                errorFormat, aznumeric_cast<AZ::u64>(eventId), m_events.size()));
+        }
+
+        auto const& [key, value]{ *iter };
+
+        AZ_Verify(value != nullptr, "The event should never be null!");
+
+        return AZ::Success(value.get());
+    }
+
+    auto SteamAudioEngine::FindObject(SaGameObjectId /*id*/) -> AZ::Outcome<AudioObject*>
+    {
+        return AZ::Failure();
+    }
+
+    auto SteamAudioEngine::ReportEvent(StartEventData const& startEventData) -> EngineNullOutcome
+    {
+        auto const outcome{ FindEvent(startEventData.m_eventId) };
+        auto* event{ outcome.GetValueOr(nullptr) };
+        if (event == nullptr)
+        {
+            return AZ::Failure(
+                AZStd::string::format("Report event failed [%s]", outcome.GetError().c_str()));
+        }
+
+        event->Start();
+
         return AZ::Success();
     }
 
-    void SteamAudioEngine::InitMiniAudio()
+    auto SteamAudioEngine::Shutdown() -> EngineNullOutcome
     {
-        ma_device_config config = ma_device_config_init(ma_device_type_playback);
-        config.playback.format = ma_format_f32;
-        config.playback.channels = 2;
-        config.sampleRate = DefaultSampleRate;
-        config.dataCallback = []([[maybe_unused]] ma_device* pDevice,
-                                 [[maybe_unused]] void* pOutput,
-                                 [[maybe_unused]] void const* pInput,
-                                 [[maybe_unused]] ma_uint32 frameCount)
+        AZ::Interface<ISoundEngine>::Unregister(this);
+
+        if (!m_device.is<ma_device>())
         {
-            auto* pDecoder = (ma_decoder*)pDevice->pUserData;
-            if (pDecoder == nullptr)
-            {
-                return;
-            }
-
-            ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, nullptr);
-        };
-
-        config.pUserData = &GetDecoder();
-
-        if (ma_device_init(nullptr, &config, &GetDevice()) != MA_SUCCESS)
-        {
-            ma_decoder_uninit(&GetDecoder());
-            AZ_Error(TYPEINFO_Name(), false, "Failed to initialize miniaudio device!");
-            return;
+            return AZ::Failure("Wrong device expected - unable to shutdown properly!");
         }
 
-        if (ma_device_start(&GetDevice()) != MA_SUCCESS)
-        {
-            ma_device_uninit(&GetDevice());
-            ma_decoder_uninit(&GetDecoder());
-            AZ_Error(TYPEINFO_Name(), false, "Failed to start an initialized miniaudio device!");
-        };
+        ma_device_uninit(&AZStd::any_cast<ma_device&>(m_device));
 
-        AZLOG_INFO(TYPEINFO_Name(), " the miniaudio system.\n");
+        return AZ::Success();
+    }
+
+    auto SteamAudioEngine::InitMiniAudio() -> EngineNullOutcome
+    {
+        static ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+        deviceConfig.playback.format = ma_format_f32;
+        deviceConfig.playback.channels = DefaultAudioChannels;
+        deviceConfig.sampleRate = DefaultSampleRate;
+        // deviceConfig.dataCallback = &MaDataCallback;
+        deviceConfig.pUserData = this;
+
+        m_device = AZStd::make_any<ma_device>();
+
+        // TODO: Check if casting to ma_device* is allowed
+        ma_device_init(nullptr, &deviceConfig, &AZStd::any_cast<ma_device&>(m_device));
+
+        return AZ::Success();
     }
 
     void SteamAudioEngine::Update(float /*deltaTime*/)
     {
-        iplSimulatorRunDirect(m_simulator);
     }
 
     auto SteamAudioEngine::RegisterAudioObject(SaGameObjectId const& objectId) -> EngineNullOutcome
@@ -433,11 +571,22 @@ namespace SteamAudio
         AZ::Entity* entity{};
 
         AZ::ComponentApplicationBus::BroadcastResult(
-            entity, &AZ::ComponentApplicationBus::Events::FindEntity, objectId);
+            entity,
+            &AZ::ComponentApplicationBus::Events::FindEntity,
+            static_cast<AZ::EntityId>(objectId));
 
-        auto gameObject{ AudioObject(objectId, m_simulator) };
+        m_registeredObjects.insert({ objectId, aznew AudioObject{} });
 
         return AZ::Failure("Not implemented.");
     }
 
-} // namespace SteamAudio
+    void SteamAudioEngine::AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> event)
+    {
+        if ((event == nullptr) || m_events.contains(eventId))
+        {
+            return;
+        }
+
+        m_events.insert({ eventId, AZStd::move(event) });
+    }
+}  // namespace SteamAudio

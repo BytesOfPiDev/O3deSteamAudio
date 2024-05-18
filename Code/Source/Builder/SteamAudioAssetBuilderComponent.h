@@ -4,6 +4,9 @@
 
 #include "Builder/AudioControlBuilderWorker.h"
 #include "Builder/AudioEventAssetBuilderWorker.h"
+#include "Builder/SoundAssetBuilderWorker.h"
+#include "Engine/AudioEventAssetHandler.h"
+#include "Engine/SoundAssetHandler.h"
 
 namespace SteamAudio
 {
@@ -23,10 +26,10 @@ namespace SteamAudio
         void Activate() override;
         void Deactivate() override;
 
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& /*required*/);
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void GetIncompatibleServices(
             AZ::ComponentDescriptor::DependencyArrayType& incompatible);
-        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
     protected:
@@ -35,9 +38,13 @@ namespace SteamAudio
         void ConfigureSoundBankBuilder();
         void ConfigureAudioEventBuilder();
         void ConfigureAudioControlBuilder();
+        void ConfigureSaSoundBuilder();
 
     private:
         AudioEventAssetBuilderWorker m_eventBuilder;
         AudioControlBuilderWorker m_audioControlBuilder;
+        SaSoundAssetBuilderWorker m_saSoundBuilder;
+        SaSoundAssetHandler m_soundAssetHandler{};
+        SaEventAssetHandler m_eventAssetHandler{};
     };
-} // namespace SteamAudio
+}  // namespace SteamAudio

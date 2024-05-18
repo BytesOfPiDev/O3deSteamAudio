@@ -3,19 +3,23 @@
 #include "AzCore/Component/TransformBus.h"
 #include "AzCore/base.h"
 #include "phonon.h"
+#include <AudioAllocators.h>
 
 #include "Engine/Id.h"
 
 namespace SteamAudio
 {
+    class SaEvent;
 
     class AudioObject : AZ::TransformNotificationBus::Handler
     {
     public:
-        AZ_DISABLE_COPY(AudioObject);
+        AZ_CLASS_ALLOCATOR_DECL;
+        AZ_DISABLE_COPY_MOVE(AudioObject);
+        AZ_TYPE_INFO_WITH_NAME_DECL(AudioObject);
 
         AudioObject();
-        AudioObject(SaGameObjectId saId, IPLSimulator simulator);
+        explicit AudioObject(AZ::EntityId entityId, IPLSimulator simulator);
 
         ~AudioObject() override;
 
@@ -43,6 +47,10 @@ namespace SteamAudio
         {
         }
 
+        void PushAudioEvent(SaEvent const* const /*audioEvent*/)
+        {
+        }
+
     protected:
         void OnTransformChanged(
             const AZ::Transform& /*local*/, const AZ::Transform& /*world*/) override;
@@ -62,6 +70,12 @@ namespace SteamAudio
         IPLSourceSettings m_sourceSettings{};
         IPLSource m_source{};
         IPLSimulator m_simulator{};
+        AZ::EntityId m_entityId{};
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio
+
+namespace AZStd
+{
+
+}

@@ -1,10 +1,11 @@
 #include "SteamAudioSystemComponent.h"
 
-#include <AzCore/Console/Console.h>
-
+#include "AzCore/Console/IConsole.h"
 #include "AzCore/Console/IConsoleTypes.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/Serialization/SerializeContext.h"
+#include "Engine/AudioEventAsset.h"
+#include "Engine/SoundAsset.h"
 #include "IAudioSystem.h"
 
 #include "Engine/Configuration.h"
@@ -46,13 +47,16 @@ namespace SteamAudio
 
         AZ::IO::FileIOBase::GetInstance()->SetAlias(BanksAlias, banksPath.c_str());
         AZ::IO::FileIOBase::GetInstance()->SetAlias(EventsAlias, eventsPath.c_str());
-        AZ::IO::FileIOBase::GetInstance()->SetAlias(RuntimePath, projectPath.c_str());
+        AZ::IO::FileIOBase::GetInstance()->SetAlias(BasePath, projectPath.c_str());
         {
         }
     }
 
     void SteamAudioSystemComponent::Reflect(AZ::ReflectContext* context)
     {
+        SaEventAsset::Reflect(context);
+        SaSoundAsset::Reflect(context);
+
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<SteamAudioSystemComponent, AZ::Component>()->Version(0);
@@ -116,6 +120,8 @@ namespace SteamAudio
                 "SteamAudioSystemComponent",
                 false,
                 "SteamAudio AudioSystemImplementation disabled via CVAR.");
+
+            return;
         }
     }
 
@@ -123,10 +129,16 @@ namespace SteamAudio
     {
         SteamAudioRequestBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
+
+        m_soundAssetHandler.Register();
+        m_eventAssetHandler.Register();
     }
 
     void SteamAudioSystemComponent::Deactivate()
     {
+        m_soundAssetHandler.Unregister();
+        m_eventAssetHandler.Unregister();
+
         if (m_audioSystemImpl.has_value())
         {
             Audio::SystemRequest::Shutdown shutdownRequest;
@@ -171,4 +183,4 @@ namespace SteamAudio
         m_audioSystemImpl.reset();
         m_soundEngine.reset();
     }
-} // namespace SteamAudio
+}  // namespace SteamAudio

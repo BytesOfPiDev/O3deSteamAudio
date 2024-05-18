@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AudioAllocators.h"
 #include "AzCore/IO/FileIO.h"
 #include "Engine/AudioSourceManager.h"
 
@@ -13,7 +14,7 @@ namespace SteamAudio
     class AudioFileParser
     {
     public:
-        AUDIO_IMPL_CLASS_ALLOCATOR(AudioFileParser)
+        AZ_CLASS_ALLOCATOR(AudioFileParser, Audio::AudioImplAllocator);
 
         AudioFileParser() = default;
         virtual ~AudioFileParser() = default;
@@ -89,7 +90,7 @@ namespace SteamAudio
          * @param toBuffer Output buffer to copy to.
          * @return Number of sample frames actually copied.
          */
-        auto CopyData(size_t numSampleFrames, void* toBuffer) -> size_t; // frames, not bytes!
+        auto CopyData(size_t numSampleFrames, void* toBuffer) -> size_t;  // frames, not bytes!
 
     private:
         /**
@@ -107,14 +108,13 @@ namespace SteamAudio
 
         AZStd::unique_ptr<AudioFileParser> m_parser{};
 
-        AZ::u8* m_dataPtr = nullptr; ///< The internal data buffer.
-        size_t m_dataSize = 0; ///< The internal data size.
+        AZ::u8* m_dataPtr = nullptr;  ///< The internal data buffer.
+        size_t m_dataSize = 0;  ///< The internal data size.
 
         // Bookmarks
-        AZ::u8* m_dataCurrentPtr = nullptr; ///< The internal bookmark pointer.
+        AZ::u8* m_dataCurrentPtr = nullptr;  ///< The internal bookmark pointer.
         size_t m_dataCurrentReadSize =
-            0; ///< The internal bookmark indicating how much data has been read so far.
-
+            0;  ///< The internal bookmark indicating how much data has been read so far.
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

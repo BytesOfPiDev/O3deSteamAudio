@@ -3,6 +3,9 @@
 
 #include "AzCore/Component/Component.h"
 #include "AzCore/Component/TickBus.h"
+#include "Engine/AudioEventAssetHandler.h"
+#include "Engine/ResourceManager.h"
+#include "Engine/SoundAssetHandler.h"
 #include "IAudioSystem.h"
 
 #include "Engine/AudioSystemImplementation_steamaudio.h"
@@ -60,8 +63,11 @@ namespace SteamAudio
         ////////////////////////////////////////////////////////////////////////
 
     private:
+        SaSoundAssetHandler m_soundAssetHandler{};
+        SaEventAssetHandler m_eventAssetHandler{};
         AZStd::optional<AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
         AZStd::optional<SteamAudioEngine> m_soundEngine{ AZStd::nullopt };
+        SoundResourceManager m_soundResourceMgr{};
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

@@ -4,7 +4,6 @@
 
 namespace SteamAudio
 {
-
     namespace Settings
     {
         // Settings Registry Keys
@@ -12,21 +11,19 @@ namespace SteamAudio
         static constexpr auto SampleRateKey{ "SteamAudio/Config/SampleRate" };
         static constexpr auto BitsPerSampleKey{ "SteamAudio/Config/SampleRate" };
         static constexpr auto LanguageKey{ "SteamAudio/Config/Language" };
-    } //  namespace Settings
+    }  // namespace Settings
 
     static constexpr auto BanksAlias = "@soundbanks@";
     static constexpr auto SoundsAlias = "@soundbanks@";
     static constexpr auto EventsAlias = "@audioevents@";
 
-    static constexpr auto RuntimePath = "@audioproject@";
-
-    static constexpr auto ProjectSrcAlias = "@audioprojectsrc@";
+    static constexpr auto BasePath = "@audioproject@";
 
     static constexpr auto ExternalSourcesPath = "external";
-    static constexpr auto SoundbankExtension = ".soundbank";
+    static constexpr auto SoundbankExtension = "sabank";
+    static constexpr auto SoundbankExtensionWildcard = "*.sabank";
     static constexpr auto SoundbankDependencyFileExtension{ ".soundbankdeps" };
-    static constexpr auto InitBank = "init.soundbank";
-    static constexpr auto InitBankSource = "init.soundbankdata";
+    static constexpr auto InitBank = "init.sabank";
 
     auto GetBanksRootPath() -> AZ::IO::PathView;
 
@@ -34,6 +31,8 @@ namespace SteamAudio
     static constexpr auto DefaultSampleRate = 48000;
     static constexpr auto DefaultBitsPerSample = 16;
     static constexpr auto DefaultFrameSize = 1024;
+
+    static constexpr auto StopAllSoundsEventName{ "StopAllSounds" };
 
     AZ_ENUM_CLASS(Language, en, es);
 
@@ -51,4 +50,4 @@ namespace SteamAudio
         Language m_language{};
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

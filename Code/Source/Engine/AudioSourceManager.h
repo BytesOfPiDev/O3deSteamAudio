@@ -35,12 +35,13 @@ namespace SteamAudio
         [[nodiscard]] auto GetSourceId() const -> Audio::TAudioSourceId;
 
     protected:
-        Audio::SAudioInputConfig m_config; ///< Configuration information for the source type.
+        Audio::SAudioInputConfig m_config;  ///< Configuration information for the source type.
     };
 
     class AudioSourceManager
     {
     public:
+        AZ_DISABLE_COPY_MOVE(AudioSourceManager);
         AudioSourceManager();
         ~AudioSourceManager();
 
@@ -89,7 +90,7 @@ namespace SteamAudio
         auto FindPlayingSource(Audio::TAudioSourceId sourceId) -> SaInstanceId;
 
     private:
-        AZStd::mutex m_inputMutex; ///< Callbacks will come from the Wwise event processing thread.
+        AZStd::mutex m_inputMutex;  ///< Callbacks will come from the Wwise event processing thread.
 
         template<typename KeyType, typename ValueType>
         using AudioInputMap = AZStd::unordered_map<
@@ -100,8 +101,8 @@ namespace SteamAudio
             Audio::AudioImplStdAllocator>;
 
         AudioInputMap<Audio::TAudioSourceId, AudioInputSource>
-            m_inactiveAudioInputs; ///< Sources that haven't started playing yet.
+            m_inactiveAudioInputs;  ///< Sources that haven't started playing yet.
         AudioInputMap<SaInstanceId, AudioInputSource>
-            m_activeAudioInputs; ///< Sources that are currently playing.
+            m_activeAudioInputs;  ///< Sources that are currently playing.
     };
-} // namespace SteamAudio
+}  // namespace SteamAudio
