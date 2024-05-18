@@ -12,8 +12,8 @@
                     "recursive": 1,
                     "order": 102
                 },
-                "RC soundbank": {
-                    "glob": "*.soundbank",
+                "RC sabank": {
+                    "glob": "*.sabank",
                     "params": "copy"
                 }
             }

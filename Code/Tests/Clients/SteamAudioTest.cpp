@@ -1,14 +1,16 @@
 #include <AzTest/AzTest.h>
 #include <gtest/gtest.h>
 
-#include "AzCore/IO/FileIO.h"
-#include "AzCore/IO/OpenMode.h"
 #include "AzCore/UnitTest/UnitTest.h"
+#include "Clients/AudioImplTestFixture.h"
+#include "IAudioInterfacesCommonData.h"
+
 #include "Clients/BaseTestFixture.h"
 #include "Clients/Mocks/MockSoundEngine.h"
 #include "Engine/ATLEntities_steamaudio.h"
 #include "Engine/AudioSystemImplementation_steamaudio.h"
-#include "IAudioInterfacesCommonData.h"
+#include "Engine/Id.h"
+#include "IAudioSystem.h"
 
 using ::testing::Return;
 
@@ -52,23 +54,63 @@ TEST_F(BaseTestFixture, InitializedAudioImpl_RegisterAudioObjectWithValidArgs_Re
         Audio::EAudioRequestStatus::Success);
 }
 
-TEST_F(BaseTestFixture, InitializedAudioImpl_ActivateValidTrigger_ReturnsSuccess)
+TEST_F(BaseTestFixture, InitializeAudioImpl_ActivateInvalidTriggerUsingValidImplData_ReturnsFailure)
 {
     MockSteamAudioEngine mockSoundEngine{};
     EXPECT_CALL(mockSoundEngine, Initialize).Times(1).WillOnce(Return(AZ::Success()));
-    EXPECT_CALL(mockSoundEngine, StartEvent).Times(1);
+    EXPECT_CALL(mockSoundEngine, ReportEvent)
+        .Times(1)
+        .WillOnce(Return(AZ::Failure("Event does not exist")));
+
+    auto& impl{ HostAudioSystemImpl() };
+    impl.Initialize();
 
     SteamAudio::SATLAudioObjectData_steamaudio objData{
         SteamAudio::SaGameObjectId{ AZ::Entity::MakeId() }, false
     };
 
-    SteamAudio::SATLTriggerImplData_steamaudio triggerData{};
+    SteamAudio::SATLTriggerImplData_steamaudio const triggerData{};
 
-    SteamAudio::SATLEventData_steamaudio eventData{};
+    static constexpr AZStd::string_view eventName{ "this_trigger_does_not_exist" };
 
-    [[maybe_unused]] Audio::SATLSourceData sourceData{};
+    auto const atlEventId{ Audio::AudioStringToID<Audio::TAudioEventID>(eventName.data()) };
 
-    [[maybe_unused]] auto& impl{ HostAudioSystemImpl() };
-    impl.Initialize();
-    impl.ActivateTrigger(&objData, &triggerData, &eventData, &sourceData);
+    SteamAudio::SATLEventData_steamaudio eventData{ atlEventId };
+
+    Audio::SATLSourceData const sourceData{};
+
+    AZ_TEST_START_TRACE_SUPPRESSION;
+    EXPECT_NE(
+        impl.ActivateTrigger(&objData, &triggerData, &eventData, &sourceData),
+        Audio::EAudioRequestStatus::Success);
+    AZ_TEST_STOP_TRACE_SUPPRESSION(1);
+
+    EXPECT_EQ(eventData.GetEventState(), Audio::EAudioEventState::eAES_NONE);
+}
+
+TEST_F(AudioImplTestFixture, Initialized_ActivateDoNothingEvent_ReturnsSuccess)
+{
+    SteamAudio::SATLAudioObjectData_steamaudio objData{
+        SteamAudio::SaGameObjectId{ AZ::Entity::MakeId() }, false
+    };
+
+    SteamAudio::SATLTriggerImplData_steamaudio const triggerData{
+        SteamAudio::Events::DoNothingEventName
+    };
+
+    auto const atlEventId{ Audio::AudioStringToID<Audio::TAudioEventID>(
+        SteamAudio::Events::DoNothingEventName) };
+
+    SteamAudio::SATLEventData_steamaudio eventData{ atlEventId };
+
+    Audio::SATLSourceData const sourceData{};
+
+    auto* impl{ TryGetAudioImpl() };
+    EXPECT_NE(impl, nullptr);
+
+    EXPECT_EQ(
+        impl->ActivateTrigger(&objData, &triggerData, &eventData, &sourceData),
+        Audio::EAudioRequestStatus::Success);
+
+    EXPECT_NE(eventData.GetEventState(), Audio::EAudioEventState::eAES_NONE);
 }

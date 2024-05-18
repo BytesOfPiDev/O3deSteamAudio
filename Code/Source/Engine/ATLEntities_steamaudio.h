@@ -1,10 +1,13 @@
 #pragma once
 
-#include "ATLEntityData.h"
+#include <AzCore/std/utils.h>
 
+#include "ATLEntityData.h"
 #include "AzCore/Name/Name.h"
-#include "Engine/Id.h"
 #include "IAudioInterfacesCommonData.h"
+
+#include "Engine/Id.h"
+#include "IAudioSystem.h"
 
 namespace SteamAudio
 {
@@ -45,17 +48,42 @@ namespace SteamAudio
         AZ::Name m_name;
     };
 
-    struct SATLTriggerImplData_steamaudio : public Audio::IATLTriggerImplData
+    class SATLTriggerImplData_steamaudio : public Audio::IATLTriggerImplData
     {
+    public:
+        AZ_DEFAULT_COPY_MOVE(SATLTriggerImplData_steamaudio);
+
         SATLTriggerImplData_steamaudio() = default;
+        SATLTriggerImplData_steamaudio(AZStd::string_view triggerName)
+            : m_triggerName{ AZ::Name{ triggerName } }
+            , m_implEventId{ Audio::AudioStringToID<SaEventId>(triggerName.data()) } {};
+
+        SATLTriggerImplData_steamaudio(AZ::Name triggerName, SaEventId implEventId)
+            : m_triggerName{ AZStd::move(triggerName) }
+            , m_implEventId{ implEventId }
+        {
+        }
+
         ~SATLTriggerImplData_steamaudio() override = default;
+
+        [[nodiscard]] auto GetImplEventId() const -> SaEventId
+        {
+            return m_implEventId;
+        }
+
+    private:
+        AZ::Name m_triggerName{};
+        SaEventId m_implEventId{};
     };
 
     class SATLListenerData_BopAudio : public Audio::IATLListenerData
     {
         SATLListenerData_BopAudio() = default;
+
         explicit SATLListenerData_BopAudio(Audio::TAudioObjectID atlId)
-            : m_atlId(atlId){};
+            : m_atlId(atlId)
+        {
+        }
 
         [[nodiscard]] auto GetAtlId() const -> Audio::TAudioObjectID
         {
@@ -72,43 +100,54 @@ namespace SteamAudio
         AZ_DEFAULT_COPY_MOVE(SATLEventData_steamaudio);
 
         SATLEventData_steamaudio() = default;
-        SATLEventData_steamaudio(
-            SaUniqueId saId,
-            Audio::TAudioEventID atlId,
-            Audio::EAudioEventState eventState,
-            Audio::TAudioSourceId sourceId)
-            : m_saId{ saId }
-            , m_atlId{ atlId }
-            , m_eventState{ eventState }
-            , m_sourceId{ sourceId } {};
+        explicit SATLEventData_steamaudio(Audio::TAudioEventID atlEventId)
+            : m_atlEventId{ atlEventId }
+        {
+        }
 
         ~SATLEventData_steamaudio() override = default;
 
         [[nodiscard]] auto GetEventState() const -> Audio::EAudioEventState
         {
-            return m_eventState;
+            return m_atlEventState;
         }
 
-        [[nodiscard]] auto GetId() const -> SaUniqueId
+        [[nodiscard]] auto GetEngineId() const -> SaId
         {
-            return m_saId;
+            return m_engineId;
         }
 
         [[nodiscard]] auto GetAtlEventId() const -> Audio::TAudioEventID
         {
-            return m_atlId;
+            return m_atlEventId;
         }
 
         [[nodiscard]] auto GetSourceId() const -> Audio::TAudioSourceId
         {
-            return m_sourceId;
+            return m_audioSourceId;
+        }
+
+        void ChangeAtlEventState(Audio::EAudioEventState newState)
+        {
+            m_atlEventState = newState;
+        }
+
+        [[nodiscard]] auto GetInstanceId() const -> SaEventInstanceId
+        {
+            return m_triggerInstanceId;
+        }
+
+        void SetInstanceId(SaEventInstanceId instanceId)
+        {
+            m_triggerInstanceId = instanceId;
         }
 
     private:
-        Audio::EAudioEventState m_eventState{};
-        SaUniqueId m_saId{};
-        Audio::TAudioEventID m_atlId{};
-        Audio::TAudioSourceId m_sourceId{};
+        Audio::EAudioEventState m_atlEventState{};
+        Audio::TAudioEventID m_atlEventId{};
+        Audio::TAudioSourceId m_audioSourceId{};
+        SaEventInstanceId m_triggerInstanceId{};
+        SaId m_engineId{};
     };
 
     struct SATLAudioFileEntryData_steamaudio : public Audio::IATLAudioFileEntryData
@@ -119,4 +158,4 @@ namespace SteamAudio
         ~SATLAudioFileEntryData_steamaudio() override = default;
     };
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

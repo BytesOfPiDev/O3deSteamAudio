@@ -23,8 +23,6 @@ namespace  SteamAudio
         }
 
     protected:
-        void CreateFactories();
-
         void Copy(
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;

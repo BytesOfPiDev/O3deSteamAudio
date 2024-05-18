@@ -2,11 +2,13 @@
 set(FILES
     Source/Tools/SteamAudioEditorSystemComponent.cpp
     Source/Tools/SteamAudioEditorSystemComponent.h
-    
+
     Source/Builder/AudioControlBuilderWorker.cpp
     Source/Builder/AudioControlBuilderWorker.h
     Source/Builder/AudioEventAssetBuilderWorker.cpp
     Source/Builder/AudioEventAssetBuilderWorker.h
+    Source/Builder/SoundAssetBuilderWorker.cpp
+    Source/Builder/SoundAssetBuilderWorker.h
     Source/Builder/SoundBankAssetBuilderWorker.cpp
     Source/Builder/SoundBankAssetBuilderWorker.h
     Source/Builder/SteamAudioAssetBuilderComponent.cpp

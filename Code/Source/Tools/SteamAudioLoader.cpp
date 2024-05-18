@@ -32,7 +32,7 @@ namespace SteamAudio
 
         auto const banksFolder = [&fileIo]() -> AZ::IO::FixedMaxPath
         {
-            AZStd::optional<AZ::IO::FixedMaxPath> const result{ fileIo->ResolvePath(RuntimePath) };
+            AZStd::optional<AZ::IO::FixedMaxPath> const result{ fileIo->ResolvePath(BasePath) };
 
             return result.value_or("");
         }();
@@ -101,6 +101,7 @@ namespace SteamAudio
             SteamAudioControlType::Event,
             AudioStrings::EventTag,
             AudioStrings::NameAttribute);
+
         ExtractControlsFromXML(
             xmlNode,
             SteamAudioControlType::AuxBus,
@@ -206,7 +207,7 @@ namespace SteamAudio
                     isLocalizedLoaded = true;
                 }
             }
-            else if (fileName.Extension() == SoundbankExtension && fileName != InitBank)
+            else if (fileName.Match(SoundbankExtensionWildcard) && fileName != InitBank)
             {
                 m_audioSystemEditor->CreateControl(AudioControls::SControlDef(
                     AZStd::string{ fileName.Native() },
@@ -246,4 +247,4 @@ namespace SteamAudio
         return AZ::IO::PathView{ m_localizationFolder };
     }
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

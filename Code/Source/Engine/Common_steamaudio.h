@@ -21,7 +21,7 @@ namespace SteamAudio::XmlTags
     static constexpr auto ShiftAttribute = "atl_shift";
     static constexpr auto LocalizedAttribute = "steamaudio_localized";
 
-} // namespace SteamAudio::XmlTags
+}  // namespace SteamAudio::XmlTags
 
 namespace AudioStrings
 {
@@ -33,7 +33,10 @@ namespace AudioStrings
     // Xml Tags
     static constexpr auto SoundBankTag = "Bank";
     static constexpr auto EventTag = "Event";
+    static constexpr auto TaskTag = "Task";
+    static constexpr auto SoundTag = "Sound";
     static constexpr auto NameAttribute = "Name";
+    static constexpr auto TypeAttribute = "Type";
     static constexpr auto SoundAttribute = "Sound";
     static constexpr auto SoundFile = "SoundFile";
     static constexpr auto ValueAttribute = "Value";
@@ -42,19 +45,14 @@ namespace AudioStrings
     static constexpr auto StateGroupTag = "StateGroup";
     static constexpr auto ChildrenListTag = "ChildrenList";
 
-    // Json Tags
-    static constexpr auto TasksTag{ "Tasks" };
-    static constexpr auto EventPlayTag = "Play";
-    static constexpr auto EventStopTag = "Stop";
-
-} // namespace AudioStrings
+}  // namespace AudioStrings
 
 namespace JsonKeys
 {
     static constexpr AZ::IO::PathView SoundsKey_O = "/SteamAudioDocument/Sounds";
     static constexpr AZ::IO::PathView EventsKey_O{ "/SteamAudioDocument/Events" };
     static constexpr AZ::IO::PathView EventDocNameKey_S{ "/EventDocument/Name" };
-} // namespace JsonKeys
+}  // namespace JsonKeys
 
 namespace SteamAudio
 {
@@ -128,4 +126,4 @@ namespace SteamAudio
         ],
         "additionalProperties": false
       })";
-} // namespace SteamAudio
+}  // namespace SteamAudio

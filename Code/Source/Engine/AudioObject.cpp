@@ -1,26 +1,34 @@
 #include "Engine/AudioObject.h"
+#include "AudioAllocators.h"
+#include "AzCore/Memory/Memory_fwd.h"
 
 namespace SteamAudio
 {
+    AZ_CLASS_ALLOCATOR_IMPL(AudioObject, Audio::AudioImplAllocator);
+    AZ_TYPE_INFO_WITH_NAME_IMPL(AudioObject, "AudioObject", "7E588CE9-9C24-4C52-BE3D-ADC704080278");
 
     AudioObject::AudioObject()
     {
         m_sourceSettings.flags = IPL_SIMULATIONFLAGS_DIRECT;
     }
 
-    AudioObject::AudioObject(SaGameObjectId objectId, IPLSimulator simulator)
-        : m_gameObjectId(objectId)
+    AudioObject::AudioObject(AZ::EntityId entityId, IPLSimulator simulator)
+        : m_entityId{ entityId }
         , m_simulator(simulator)
     {
-        if (m_gameObjectId.IsValid())
+        AZ::EntityId d;
+        if (m_gameObjectId != AZ::EntityId::InvalidEntityId)
         {
-            AZ::TransformNotificationBus::Handler::BusConnect(m_gameObjectId);
+            AZ::TransformNotificationBus::Handler::BusConnect(
+                static_cast<AZ::EntityId>(m_gameObjectId));
         }
 
         IPLCoordinateSpace3 sourceCoords{};
         AZ::Transform gameTransform{};
         AZ::TransformBus::EventResult(
-            gameTransform, m_gameObjectId, &AZ::TransformBus::Events::GetWorldTM);
+            gameTransform,
+            static_cast<AZ::EntityId>(m_gameObjectId),
+            &AZ::TransformBus::Events::GetWorldTM);
 
         auto translation{ gameTransform.GetTranslation() };
         sourceCoords.origin.x = translation.GetX();
@@ -40,7 +48,8 @@ namespace SteamAudio
 
     AudioObject::~AudioObject()
     {
-        AZ::TransformNotificationBus::Handler::BusDisconnect(m_gameObjectId);
+        AZ::TransformNotificationBus::Handler::BusDisconnect(
+            static_cast<AZ::EntityId>(m_gameObjectId));
         iplSourceRemove(m_source, m_simulator);
         iplSimulatorCommit(m_simulator);
     }
@@ -64,4 +73,4 @@ namespace SteamAudio
     {
     }
 
-} // namespace SteamAudio
+}  // namespace SteamAudio

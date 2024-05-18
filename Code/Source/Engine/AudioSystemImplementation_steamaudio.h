@@ -6,16 +6,14 @@
 #include "AudioAllocators.h"
 #include "AzCore/RTTI/RTTIMacros.h"
 #include "AzCore/RTTI/TypeInfoSimple.h"
-#include "Engine/AudioSource.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystemImplementation.h"
-#include "phonon.h"
 
 #include "Engine/ISoundEngine.h"
 
 namespace SteamAudio
 {
-    class AudioSystemImpl_steamaudio : protected Audio::AudioSystemImplementation
+    class AudioSystemImpl_steamaudio : public Audio::AudioSystemImplementation
     {
     public:
         AZ_RTTI_NO_TYPE_INFO_DECL();
@@ -163,6 +161,7 @@ namespace SteamAudio
         [[nodiscard]] auto GetImplSubPath() const -> char const* const override;
         void SetLanguage(char const* const language) override;
 
+        //////////////////////////////////////////////////////////////////////////
         // Functions below are only used when RELEASE is not defined
         [[nodiscard]] auto GetImplementationNameString() const -> char const* const override;
         void GetMemoryInfo(Audio::SAudioImplMemoryInfo& memoryInfo) const override;
@@ -188,4 +187,4 @@ namespace SteamAudio
 
         SaGameObjectId m_globalGameObjectId{};
     };
-} // namespace SteamAudio
+}  // namespace SteamAudio

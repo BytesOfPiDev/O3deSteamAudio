@@ -1,8 +1,7 @@
-#include "AzCore/Name/NameDictionary.h"
-
 #include "AzCore/Asset/AssetManagerBus.h"
 #include "AzCore/Asset/AssetTypeInfoBus.h"
 #include "AzCore/IO/FileIO.h"
+#include "AzCore/Name/NameDictionary.h"
 #include "AzCore/UnitTest/UnitTest.h"
 #include "AzCore/Utils/Utils.h"
 #include "AzCore/base.h"

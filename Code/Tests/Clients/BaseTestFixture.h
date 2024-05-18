@@ -6,12 +6,12 @@
 #include "AzCore/Component/ComponentApplication.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/Name/NameDictionary.h"
-#include "AzCore/Settings/SettingsRegistry.h"
-#include "AzCore/Settings/SettingsRegistryImpl.h"
 #include "AzCore/std/optional.h"
 #include "AzFramework/IO/LocalFileIO.h"
 #include "Engine/AudioSystemImplementation_steamaudio.h"
+#include "Engine/ISoundEngine.h"
 #include "Engine/SoundEngine.h"
+#include "IAudioSystemImplementation.h"
 
 class BaseTestFixture
     : public UnitTest::TraceBusRedirector
@@ -40,8 +40,24 @@ public:
         m_soundEngine.emplace();
         return m_soundEngine.value();
     };
-    
-    auto GetFileIo() -> AZ::IO::FileIOBase* { return m_fileIo.get(); }
+
+    auto GetFileIo() -> AZ::IO::FileIOBase*
+    {
+        return m_fileIo.get();
+    }
+
+    [[nodiscard]] auto TryGetAudioImpl() -> Audio::AudioSystemImplementationRequests*
+    {
+        // To simulate an EBus call, we do this instead of directly returning out member.
+        auto* ptr{ Audio::AudioSystemImplementationRequestBus::FindFirstHandler() };
+        EXPECT_NE(ptr, nullptr);
+        return ptr;
+    }
+
+    [[nodiscard]] auto TryGetSoundEngine() -> SteamAudio::ISoundEngine*
+    {
+        return &m_soundEngine.value();
+    }
 
 private:
     AZ::NameDictionary m_dictionary{};
@@ -51,5 +67,4 @@ private:
     AZStd::optional<SteamAudio::SteamAudioEngine> m_soundEngine{ AZStd::nullopt };
     AZ::IO::FileIOBase* m_prevFileIo{};
     AZStd::unique_ptr<AZ::IO::LocalFileIO> m_fileIo{};
-    
 };

@@ -25,12 +25,12 @@ void BaseTestFixture::SetUp()
     AZ::Test::AddActiveGem("SteamAudio", *AZ::SettingsRegistry::Get(), GetFileIo());
     ASSERT_TRUE(m_fileIo->ResolvePath("@gemroot:SteamAudio@").has_value());
 
-    AZStd::optional<AZ::IO::FixedMaxPath> productPath =
+    AZStd::optional<AZ::IO::FixedMaxPath> const productPath =
         AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Products");
     ASSERT_TRUE(productPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@products@", productPath.value().c_str());
 
-    AZStd::optional<AZ::IO::FixedMaxPath> testAssetPath =
+    AZStd::optional<AZ::IO::FixedMaxPath> const testAssetPath =
         AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Assets");
     ASSERT_TRUE(testAssetPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@assets@", testAssetPath.value().c_str());

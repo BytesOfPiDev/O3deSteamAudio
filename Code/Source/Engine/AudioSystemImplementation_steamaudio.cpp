@@ -8,12 +8,14 @@
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Settings/SettingsRegistry.h"
 #include "AzCore/StringFunc/StringFunc.h"
+#include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystem.h"
 #include "IAudioSystemImplementation.h"
 
 #include "Engine/ATLEntities_steamaudio.h"
+#include "Engine/AudioSourceManager.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Configuration.h"
 
@@ -262,16 +264,38 @@ namespace SteamAudio
         auto* const implTriggerData{ static_cast<SATLTriggerImplData_steamaudio const*>(
             triggerData) };
 
-        if (implObjectData && implEventData && implTriggerData)
+        if (!implObjectData || !implEventData || !implTriggerData)
         {
-            auto const objectId{ implObjectData->HasPosition() ? implObjectData->GetId()
-                                                               : m_globalGameObjectId };
-
-            auto startEventData{ StartEventData() };
-            startEventData.m_gameObjectId = objectId;
-
-            m_engine->StartEvent(startEventData);
+            return result;
         }
+
+        auto const objectId{ implObjectData->HasPosition() ? implObjectData->GetId()
+                                                           : m_globalGameObjectId };
+
+        auto const startEventData = [&objectId, implTriggerData]() -> StartEventData
+        {
+            auto result{ StartEventData{} };
+            result.m_gameObjectId = objectId;
+            result.m_eventId = implTriggerData->GetImplEventId();
+            return result;
+        }();
+
+        auto const reportEventOutcome{ m_engine->ReportEvent(startEventData) };
+        if (!reportEventOutcome.IsSuccess())
+        {
+            AZ_Error(
+                TYPEINFO_Name(),
+                false,
+                "Attempt to report trigger action failed [%s]",
+                reportEventOutcome.GetError().c_str());
+            return Audio::EAudioRequestStatus::Failure;
+        }
+
+        implEventData->ChangeAtlEventState(Audio::EAudioEventState::eAES_PLAYING);
+        // FIXME: Actually set the id
+        implEventData->SetInstanceId({});
+
+        result = Audio::EAudioRequestStatus::Success;
 
         return result;
     }
@@ -368,7 +392,7 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::RegisterInMemoryFile(
         Audio::SATLAudioFileEntryInfo* const /*audioFileEntry*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: RegisterInMemoryFile.\n");
+        AZLOG(LOG_asi_steamaudio, "%s is registering an in-memory file.\n", TYPEINFO_Name());
 
         return Audio::EAudioRequestStatus::Failure;
     }
@@ -376,8 +400,8 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::UnregisterInMemoryFile(
         Audio::SATLAudioFileEntryInfo* const audioFileEntry) -> Audio::EAudioRequestStatus
     {
-        AZLOG(
-            LOG_asi_steamaudio, "SteamAudio received a request to unregister an in-memory file.\n");
+        AZLOG(LOG_asi_steamaudio, "%s is unregistering an in-memory file.\n", TYPEINFO_Name());
+
         AZ_UNUSED(audioFileEntry);
         return Audio::EAudioRequestStatus::Success;
     }
@@ -386,7 +410,11 @@ namespace SteamAudio
         const AZ::rapidxml::xml_node<char>* audioFileEntryNode,
         Audio::SATLAudioFileEntryInfo* const fileEntryInfo) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "SteamAudio received a request to parse an audio file entry.\n");
+        AZLOG(
+            LOG_asi_steamaudio,
+            "%s is parsing audio file entry: '%s'\n",
+            TYPEINFO_Name(),
+            fileEntryInfo->sFileName);
 
         static constexpr auto defaultFileEntry =
             [](Audio::SATLAudioFileEntryInfo* const entry) -> void
@@ -434,8 +462,14 @@ namespace SteamAudio
 
         fileEntryInfo->sFileName = soundBankFileName;
         fileEntryInfo->pImplData = implAudioFile;
-        fileEntryInfo->nMemoryBlockAlignment = 1;
+        fileEntryInfo->nMemoryBlockAlignment = DefaultFrameSize;
         fileEntryInfo->bLocalized = false;
+
+        AZLOG(
+            LOG_asi_steamaudio,
+            "%s successfully parsed audio file entry: '%s'.\n",
+            TYPEINFO_Name(),
+            fileEntryInfo->sFileName);
 
         return Audio::EAudioRequestStatus::Success;
     }
@@ -476,7 +510,7 @@ namespace SteamAudio
             return nullptr;
         }
 
-        AZStd::string const triggerName = [&audioTriggerNode]() -> decltype(triggerName)
+        AZ::Name const triggerName = [&audioTriggerNode]() -> decltype(triggerName)
         {
             auto const triggerNameAttrib{ audioTriggerNode->first_attribute(
                 XmlTags::NameAttribute) };
@@ -484,14 +518,24 @@ namespace SteamAudio
                                                             : nullptr };
         }();
 
-        auto* implAudioTriggerData{ azcreate(
-            SATLTriggerImplData_steamaudio, (), Audio::AudioImplAllocator) };
+        /*
+              auto const atlEventId{ Audio::AudioStringToID<Audio::TAudioEventID>(
+                  triggerName.GetCStr()) };
+                  */
+
+        auto const implEventId{ Audio::AudioStringToID<SaEventId>(triggerName.GetCStr()) };
+
+        auto const engineId{ SaId{ AZ::Uuid::CreateRandom() } };
+
+        auto* const implAudioTriggerData{ azcreate(
+            SATLTriggerImplData_steamaudio,
+            (triggerName, implEventId),
+            Audio::AudioImplAllocator) };
 
         AZLOG(
             LOG_asi_steamaudio,
-            "SteamAudio created a new audio trigger: [Name: %s][AtlEventId: %llu]",
-            triggerName.c_str(),
-            Audio::AudioStringToID<Audio::TAudioEventID>(triggerName.c_str()));
+            "SteamAudio created a new audio trigger: [Name: %s]",
+            triggerName.GetCStr());
 
         return implAudioTriggerData;
     }
@@ -597,16 +641,22 @@ namespace SteamAudio
         AZ_UNUSED(oldListenerData);
     }
 
-    auto AudioSystemImpl_steamaudio::NewAudioEventData(Audio::TAudioEventID const /*eventId*/)
+    auto AudioSystemImpl_steamaudio::NewAudioEventData(Audio::TAudioEventID const atlEventId)
         -> Audio::IATLEventData*
     {
         AZLOG(LOG_asi_steamaudio, "BopAudio: NewAudioEventData");
-        return azcreate(SATLEventData_steamaudio, (), Audio::AudioImplAllocator);
+
+        // eventArgs.m_saId = m_engine->CreateNewEvent();
+
+        return azcreate(SATLEventData_steamaudio, (atlEventId), Audio::AudioImplAllocator);
     }
 
     void AudioSystemImpl_steamaudio::DeleteAudioEventData(Audio::IATLEventData* const oldEventData)
     {
         AZLOG(LOG_asi_steamaudio, "SteamAudio received a request to delete event data.\n");
+        auto* oldImplEventData{ static_cast<SATLEventData_steamaudio*>(oldEventData) };
+        m_engine->DestroyAudioEvent(oldImplEventData->GetEngineId());
+
         azdestroy(oldEventData, Audio::AudioImplAllocator);
     }
 
@@ -634,6 +684,8 @@ namespace SteamAudio
         m_language = language;
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    // Functions below are only used when RELEASE is not defined
     auto AudioSystemImpl_steamaudio::GetImplementationNameString() const -> char const* const
     {
         return "SteamAudio-Dev";
@@ -655,6 +707,8 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::CreateAudioSource(Audio::SAudioInputConfig const& sourceConfig)
         -> bool
     {
+        AZLOG(LOG_asi_steamaudio, "%s is creating an audio source.\n", TYPEINFO_Name());
+
         AudioSourceManager::Get().CreateSource(sourceConfig);
 
         return true;
@@ -662,6 +716,7 @@ namespace SteamAudio
 
     void AudioSystemImpl_steamaudio::DestroyAudioSource(Audio::TAudioSourceId sourceId)
     {
+        AZLOG(LOG_asi_steamaudio, "%s is destroying an audio source.\n", TYPEINFO_Name());
         AudioSourceManager::Get().DestroySource(sourceId);
     }
 
@@ -669,4 +724,5 @@ namespace SteamAudio
     {
         m_panningMode = mode;
     }
-} // namespace SteamAudio
+    //////////////////////////////////////////////////////////////////////////
+}  // namespace SteamAudio
