@@ -1,10 +1,13 @@
 #pragma once
 
 #include "AzCore/EBus/EBus.h"
-#include "Engine/AudioEvent.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Id.h"
 #include "Engine/Parameters.h"
+
+extern "C" {
+struct ma_engine;
+}
 
 namespace SteamAudio
 {
@@ -18,8 +21,26 @@ namespace SteamAudio
         ISoundEngine() = default;
         virtual ~ISoundEngine() = default;
 
-        virtual auto Initialize() -> EngineNullOutcome = 0;
-        virtual auto Shutdown() -> EngineNullOutcome = 0;
+        virtual auto GetLowLevelEngine() -> ma_engine*
+        {
+            return nullptr;
+        }
+
+        [[nodiscard]] virtual auto IsInitialized() const -> bool
+        {
+            return false;
+        }
+
+        virtual auto Initialize() -> EngineNullOutcome
+        {
+            return AZ::Failure("Unimplemented");
+        };
+
+        virtual auto Shutdown() -> EngineNullOutcome
+        {
+            return AZ::Failure("Unimplemented");
+        };
+
         virtual auto RegisterAudioObject(SaGameObjectId const& /*objectId*/) -> EngineNullOutcome
         {
             return {};
@@ -68,13 +89,6 @@ namespace SteamAudio
         virtual void DestroyAudioEvent(SaId /*eventId*/)
         {
         }
-
-        // BUG: For whatever stupid reason, unique pointers can't work properly with ebuses at all,
-        // so don't call this from a bus (compile-time). Or try to call it and find out.
-        virtual void AddEvent(
-            SaEventId /*eventId*/, AZStd::unique_ptr<SteamAudio::SaEvent> /*event*/)
-        {
-        }
     };
 
     class SoundEngineRequestBusTraits : public AZ::EBusTraits
@@ -85,4 +99,26 @@ namespace SteamAudio
     };
 
     using SoundEngineRequestBus = AZ::EBus<ISoundEngine, SoundEngineRequestBusTraits>;
+
+    class SoundEngineNotifications
+    {
+    public:
+        AZ_DISABLE_COPY_MOVE(SoundEngineNotifications);
+
+        SoundEngineNotifications() = default;
+        virtual ~SoundEngineNotifications() = default;
+
+        virtual void OnSoundManagerReady() const {};
+        virtual void OnEventmanagerReady() const {};
+    };
+
+    struct SoundEngineNotificationBusTraits : AZ::EBusTraits
+    {
+        static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Multiple;
+        static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
+    };
+
+    using SoundEngineNotificationBus =
+        AZ::EBus<SoundEngineNotifications, SoundEngineNotificationBusTraits>;
+
 }  // namespace SteamAudio

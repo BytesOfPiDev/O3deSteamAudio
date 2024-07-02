@@ -67,6 +67,7 @@ TEST_F(BaseTestFixture, InitializedAudioImpl_RegisterAudioObjectWithValidArgs_Re
     MockSteamAudioEngine mockSoundEngine{};
     EXPECT_CALL(mockSoundEngine, Initialize).Times(1).WillOnce(Return(AZ::Success()));
     EXPECT_CALL(mockSoundEngine, RegisterAudioObject).Times(1).WillOnce(Return(AZ::Success()));
+    EXPECT_CALL(mockSoundEngine, Shutdown).Times(1).WillOnce(Return(AZ::Success()));
 
     auto impl{ SteamAudio::AudioSystemImpl_steamaudio() };
     impl.Initialize();

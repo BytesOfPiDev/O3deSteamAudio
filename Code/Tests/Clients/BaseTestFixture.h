@@ -21,8 +21,7 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    [[nodiscard("Only one call per test allowed. Keep a reference.")]] auto HostAudioSystemImpl()
-        -> SteamAudio::AudioSystemImpl_steamaudio&
+    auto HostAudioSystemImpl() -> SteamAudio::AudioSystemImpl_steamaudio&
     {
         EXPECT_FALSE(m_audioSystemImpl.has_value())
             << "HostAudioSystemImpl should only be called once per test.";
@@ -31,8 +30,7 @@ public:
         return m_audioSystemImpl.value();
     };
 
-    [[nodiscard("Only one call per test allowed. Keep a reference.")]] auto HostSoundEngine()
-        -> SteamAudio::MaSoundEngine&
+    auto HostSoundEngine() -> SteamAudio::MaSoundEngine&
     {
         EXPECT_FALSE(m_soundEngine.has_value())
             << "HostSoundEngine should only be called once per test.";
@@ -40,6 +38,16 @@ public:
         m_soundEngine.emplace();
         return m_soundEngine.value();
     };
+
+    void DestroyAudioSystemImpl()
+    {
+        m_audioSystemImpl = AZStd::nullopt;
+    }
+
+    void DestroySoundEngine()
+    {
+        m_soundEngine = AZStd::nullopt;
+    }
 
     auto GetFileIo() -> AZ::IO::FileIOBase*
     {

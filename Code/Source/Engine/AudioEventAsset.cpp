@@ -7,6 +7,7 @@
 #include "AzCore/Serialization/EditContext.h"
 #include "AzCore/Serialization/EditContextConstants.inl"
 #include "AzCore/Serialization/SerializeContext.h"
+#include "Engine/ResourceManager.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Engine/AudioEventAsset.h"
@@ -67,6 +68,15 @@ namespace SteamAudio
     void SaEventAsset::UpdateId()
     {
         SetEventId(m_name);
+    }
+
+    void SaEventAsset::RegisterWithEngine()
+    {
+        AZ::IO::Path const soundHint{ m_sound.GetHint() };
+        SoundResourceManagerRequestBus::Broadcast(
+            &SoundResourceManagerRequests::RegisterSound,
+            m_sound,
+            AZ::Name{ soundHint.Stem().String() });
     }
 
 }  // namespace SteamAudio

@@ -58,6 +58,13 @@ namespace SteamAudio
             return m_id;
         }
 
+        [[nodiscard]] virtual auto GetSound() const -> AZ::Data::Asset<SaSoundAsset>
+        {
+            return m_sound;
+        }
+
+        void RegisterWithEngine();
+
         virtual void SetEventId(AudioEventName eventName)
         {
             SetEventName(AZStd::move(eventName));

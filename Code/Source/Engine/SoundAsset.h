@@ -4,13 +4,23 @@
 #include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Name/Name.h"
 #include "Engine/Configuration.h"
+#include "Engine/ISoundEngine.h"
 #include "IAudioInterfacesCommonData.h"
+
+extern "C" {
+struct ma_engine;
+struct ma_sound;
+}
 
 namespace SteamAudio
 {
     class ISaSoundAsset
     {
     public:
+        AZ_DISABLE_COPY_MOVE(ISaSoundAsset);
+
+        ISaSoundAsset() = default;
+        virtual ~ISaSoundAsset() = default;
         [[nodiscard]] virtual auto CopyBuffer() const -> AZStd::vector<float>
         {
             return {};
@@ -34,7 +44,9 @@ namespace SteamAudio
 
     using SaSoundAssetRequestBus = AZ::EBus<ISaSoundAsset, SaSoundAssetBusTraits>;
 
-    class SaSoundAsset : public AZ::Data::AssetData
+    class SaSoundAsset
+        : public AZ::Data::AssetData
+        , protected SoundEngineNotificationBus::Handler
     {
     public:
         AZ_RTTI_NO_TYPE_INFO_DECL();
@@ -43,6 +55,10 @@ namespace SteamAudio
         AZ_CLASS_ALLOCATOR_DECL;
 
         using Buffer = AZStd::vector<AZStd::byte, Audio::AudioImplStdAllocator>;
+
+        struct ISoundImpl
+        {
+        };
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -101,6 +117,12 @@ namespace SteamAudio
             return m_frameCount;
         }
 
+        void CopySoundInto(ma_sound*);
+
+    protected:
+        void OnSoundManagerReady() const override {};
+        void OnEventmanagerReady() const override {};
+
     private:
         Audio::AudioInputSourceType m_sourceType{ Audio::AudioInputSourceType::Unsupported };
         Audio::AudioInputSampleType m_sampleType{ Audio::AudioInputSampleType::Unsupported };
@@ -108,6 +130,8 @@ namespace SteamAudio
         AZ::u64 m_frameCount{};
         AZ::u32 m_channels{ DefaultAudioChannels };
         AZ::u32 m_sampleRate{ DefaultSampleRate };
+
+        AZStd::unique_ptr<ISoundImpl> m_sound{};
     };
 
 }  // namespace SteamAudio

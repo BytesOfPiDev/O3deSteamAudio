@@ -8,16 +8,15 @@
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Settings/SettingsRegistry.h"
 #include "AzCore/StringFunc/StringFunc.h"
-#include "Engine/ISoundEngine.h"
-#include "Engine/Id.h"
 #include "IAudioInterfacesCommonData.h"
-#include "IAudioSystem.h"
 #include "IAudioSystemImplementation.h"
 
 #include "Engine/ATLEntities_steamaudio.h"
 #include "Engine/AudioSourceManager.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Configuration.h"
+#include "Engine/ISoundEngine.h"
+#include "Engine/Id.h"
 
 namespace SteamAudio
 {
@@ -37,6 +36,8 @@ namespace SteamAudio
 
     AudioSystemImpl_steamaudio::~AudioSystemImpl_steamaudio()
     {
+        ShutDown();
+
         Audio::AudioSystemImplementationRequestBus::Handler::BusDisconnect();
         Audio::AudioSystemImplementationNotificationBus::Handler::BusDisconnect();
     }
@@ -131,10 +132,12 @@ namespace SteamAudio
 
     auto AudioSystemImpl_steamaudio::ShutDown() -> Audio::EAudioRequestStatus
     {
-        if (!AZ::Interface<ISoundEngine>::Get())
+        if (!m_engine)
         {
             return Audio::EAudioRequestStatus::Failure;
         }
+
+        m_engine->Shutdown();
 
         AudioSourceManager::Get().Shutdown();
 

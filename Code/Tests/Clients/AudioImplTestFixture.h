@@ -11,6 +11,7 @@ public:
 
         [[maybe_unused]] auto& audioImpl{ HostAudioSystemImpl() };
         [[maybe_unused]] auto& soundEngine{ HostSoundEngine() };
+        soundEngine.Initialize();
         audioImpl.Initialize();
     }
 

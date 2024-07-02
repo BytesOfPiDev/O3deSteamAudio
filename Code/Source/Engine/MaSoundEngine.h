@@ -12,6 +12,11 @@
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
 
+extern "C" {
+struct ma_engine;
+struct ma_sound;
+}
+
 namespace SteamAudio
 {
     class MaSoundEngine : public SoundEngineRequestBus::Handler
@@ -19,8 +24,13 @@ namespace SteamAudio
     public:
         AZ_DISABLE_COPY_MOVE(MaSoundEngine);
 
-        MaSoundEngine() = default;
+        MaSoundEngine();
         ~MaSoundEngine() override = default;
+
+        auto IsInitialized() const -> bool override
+        {
+            return m_initialized;
+        }
 
         auto Initialize() -> EngineNullOutcome override;
 
@@ -31,11 +41,12 @@ namespace SteamAudio
         auto RegisterAudioObject(SaGameObjectId const& /*audioObject*/)
             -> EngineNullOutcome override;
 
-        void AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> /*event*/) override;
         auto ReportEvent(StartEventData const&) -> EngineNullOutcome override;
 
     protected:
+        void AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> /*event*/);
         auto InitMiniAudio() -> EngineNullOutcome;
+        auto ShutdownMiniAudio() -> EngineNullOutcome;
 
         void LoadNativeEvents();
         void LoadEventAssets();
@@ -74,6 +85,8 @@ namespace SteamAudio
             Audio::AudioImplStdAllocator>;
         EventAssetMap<SaEventId, SaEventAsset> m_eventAssets{};
 
-        AZStd::any m_device{};
+        AZStd::any m_engine{};
+
+        bool m_initialized{};
     };
 }  // namespace SteamAudio

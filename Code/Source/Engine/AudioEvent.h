@@ -17,7 +17,7 @@ namespace SteamAudio
         using StartFunc = AZStd::function<void()>;
         using StopFunc = AZStd::function<void()>;
 
-        SaEvent() = default;
+        SaEvent();
         /// Configures itself based on the given SaEventAsset
         ///
         /// @note If the asset is not already loaded, it will perform a blocking load.

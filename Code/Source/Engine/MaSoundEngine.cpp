@@ -15,7 +15,6 @@
 #include "phonon.h"
 #include "phonon_version.h"
 
-#include "AudioAllocators.h"
 #include "AzCore/Outcome/Outcome.h"
 #include "AzFramework/Entity/GameEntityContextBus.h"
 
@@ -23,27 +22,6 @@
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "SteamAudio/MiniAudio.h"
-
-void MaDataCallback(ma_device* pDevice, void* pOutput, void const* pInput, ma_uint32 frameCount)
-{
-    AZ_UNUSED_4(pDevice, pOutput, pInput, frameCount);
-
-    // auto* engine = static_cast<SteamAudio::ISoundEngine*>(pDevice->pUserData);
-
-    // ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount, nullptr);
-};
-
-/*
-static auto my_malloc(size_t size, size_t alignment) -> void*
-{
-    return azmalloc(size, alignment, Audio::AudioImplAllocator);
-}
-
-static void my_free(void* block)
-{
-    azfree(block, Audio::AudioImplAllocator);
-}
-*/
 
 [[maybe_unused]] static auto ma_result_from_IPLerror(IPLerror error) -> ma_result
 {
@@ -278,7 +256,7 @@ MA_API auto ma_steamaudio_binaural_node_init(
         sizeof(float) * channelsIn * pBinauralNode->iplAudioSettings.frameSize; /* Input buffer. */
 
     pBinauralNode->_pHeap = ma_malloc(heapSizeInBytes, pAllocationCallbacks);
-    if (pBinauralNode->_pHeap == NULL)
+    if (pBinauralNode->_pHeap == nullptr)
     {
         iplBinauralEffectRelease(&pBinauralNode->iplEffect);
         ma_node_uninit(&pBinauralNode->baseNode, pAllocationCallbacks);
@@ -339,8 +317,15 @@ MA_API auto ma_steamaudio_binaural_node_set_direction(
 
 namespace SteamAudio
 {
+    MaSoundEngine::MaSoundEngine() = default;
+
     auto MaSoundEngine::Initialize() -> EngineNullOutcome
     {
+        if (IsInitialized())
+        {
+            return AZ::Success();
+        }
+
         AZ::Interface<ISoundEngine>::Register(this);
         m_contextSettings.version = STEAMAUDIO_VERSION;
 
@@ -470,8 +455,9 @@ namespace SteamAudio
                     AZ::Data::AssetLoadParameters{}) };
 
                 asset.BlockUntilLoadComplete();
+                asset->RegisterWithEngine();
 
-                auto event{ AZStd::make_unique<SaEvent>() };
+                auto event{ AZStd::make_unique<SaEvent>(asset.GetId()) };
 
                 m_eventAssets.insert({ asset->GetEventId(), asset });
                 AZ_Warning(
@@ -532,15 +518,19 @@ namespace SteamAudio
 
     auto MaSoundEngine::Shutdown() -> EngineNullOutcome
     {
-        AZ::Interface<ISoundEngine>::Unregister(this);
-
-        if (!m_device.is<ma_device>())
+        if (!m_initialized)
         {
-            return AZ::Failure("Wrong device expected - unable to shutdown properly!");
+            return AZ::Success();
         }
 
-        ma_device_uninit(&AZStd::any_cast<ma_device&>(m_device));
+        m_registeredObjects.clear();
+        m_events.clear();
+        m_eventAssets.clear();
 
+        AZ::Interface<ISoundEngine>::Unregister(this);
+        ShutdownMiniAudio();
+
+        m_initialized = false;
         return AZ::Success();
     }
 
@@ -553,10 +543,23 @@ namespace SteamAudio
         // deviceConfig.dataCallback = &MaDataCallback;
         deviceConfig.pUserData = this;
 
-        m_device = AZStd::make_any<ma_device>();
+        static ma_engine_config engineConfig = ma_engine_config_init();
 
-        // TODO: Check if casting to ma_device* is allowed
-        ma_device_init(nullptr, &deviceConfig, &AZStd::any_cast<ma_device&>(m_device));
+        m_engine = AZStd::make_any<ma_engine>();
+        ma_engine_init(&engineConfig, &AZStd::any_cast<ma_engine&>(m_engine));
+
+        return AZ::Success();
+    }
+
+    auto MaSoundEngine::ShutdownMiniAudio() -> EngineNullOutcome
+    {
+        if (!m_engine.is<ma_engine>())
+        {
+            return AZ::Failure("Wrong typ! Expected ma_engine - unable to shutdown properly!");
+        }
+
+        ma_engine_uninit(&AZStd::any_cast<ma_engine&>(m_engine));
+        m_engine.clear();
 
         return AZ::Success();
     }
