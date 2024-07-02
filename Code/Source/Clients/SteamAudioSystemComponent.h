@@ -9,7 +9,7 @@
 #include "IAudioSystem.h"
 
 #include "Engine/AudioSystemImplementation_steamaudio.h"
-#include "Engine/SoundEngine.h"
+#include "Engine/MaSoundEngine.h"
 #include "SteamAudio/SteamAudioBus.h"
 
 namespace SteamAudio
@@ -66,7 +66,7 @@ namespace SteamAudio
         SaSoundAssetHandler m_soundAssetHandler{};
         SaEventAssetHandler m_eventAssetHandler{};
         AZStd::optional<AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
-        AZStd::optional<SteamAudioEngine> m_soundEngine{ AZStd::nullopt };
+        AZStd::optional<MaSoundEngine> m_soundEngine{ AZStd::nullopt };
         SoundResourceManager m_soundResourceMgr{};
     };
 

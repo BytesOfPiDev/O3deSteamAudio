@@ -1,4 +1,4 @@
-#include "Engine/SoundEngine.h"
+#include "Engine/MaSoundEngine.h"
 
 #include "AudioFileUtils.h"
 #include "AzCore/Asset/AssetCommon.h"
@@ -339,7 +339,7 @@ MA_API auto ma_steamaudio_binaural_node_set_direction(
 
 namespace SteamAudio
 {
-    auto SteamAudioEngine::Initialize() -> EngineNullOutcome
+    auto MaSoundEngine::Initialize() -> EngineNullOutcome
     {
         AZ::Interface<ISoundEngine>::Register(this);
         m_contextSettings.version = STEAMAUDIO_VERSION;
@@ -357,7 +357,7 @@ namespace SteamAudio
         return AZ::Success();
     }
 
-    void SteamAudioEngine::LoadNativeEvents()
+    void MaSoundEngine::LoadNativeEvents()
     {
         auto muteAllEvent{ AZStd::make_unique<SaEvent>(
             SaEvent::StartFunc{ [soundEngine = this]()
@@ -430,7 +430,7 @@ namespace SteamAudio
         loseFocusEvent = nullptr;
     }
 
-    void SteamAudioEngine::LoadEventAssets()
+    void MaSoundEngine::LoadEventAssets()
     {
         auto const* const fileIo{ AZ::IO::FileIOBase::GetInstance() };
 
@@ -491,8 +491,7 @@ namespace SteamAudio
             TYPEINFO_Name(), resolvedPathOutcome.has_value(), "Failed to resolve events alias.");
     }
 
-    auto SteamAudioEngine::FindEvent(SaEventId eventId) const
-        -> AZ::Outcome<SaEvent*, AZStd::string>
+    auto MaSoundEngine::FindEvent(SaEventId eventId) const -> AZ::Outcome<SaEvent*, AZStd::string>
     {
         auto iter{ m_events.find(eventId) };
         if (iter == AZStd::end(m_events))
@@ -511,12 +510,12 @@ namespace SteamAudio
         return AZ::Success(value.get());
     }
 
-    auto SteamAudioEngine::FindObject(SaGameObjectId /*id*/) -> AZ::Outcome<AudioObject*>
+    auto MaSoundEngine::FindObject(SaGameObjectId /*id*/) -> AZ::Outcome<AudioObject*>
     {
         return AZ::Failure();
     }
 
-    auto SteamAudioEngine::ReportEvent(StartEventData const& startEventData) -> EngineNullOutcome
+    auto MaSoundEngine::ReportEvent(StartEventData const& startEventData) -> EngineNullOutcome
     {
         auto const outcome{ FindEvent(startEventData.m_eventId) };
         auto* event{ outcome.GetValueOr(nullptr) };
@@ -531,7 +530,7 @@ namespace SteamAudio
         return AZ::Success();
     }
 
-    auto SteamAudioEngine::Shutdown() -> EngineNullOutcome
+    auto MaSoundEngine::Shutdown() -> EngineNullOutcome
     {
         AZ::Interface<ISoundEngine>::Unregister(this);
 
@@ -545,7 +544,7 @@ namespace SteamAudio
         return AZ::Success();
     }
 
-    auto SteamAudioEngine::InitMiniAudio() -> EngineNullOutcome
+    auto MaSoundEngine::InitMiniAudio() -> EngineNullOutcome
     {
         static ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
         deviceConfig.playback.format = ma_format_f32;
@@ -562,11 +561,11 @@ namespace SteamAudio
         return AZ::Success();
     }
 
-    void SteamAudioEngine::Update(float /*deltaTime*/)
+    void MaSoundEngine::Update(float /*deltaTime*/)
     {
     }
 
-    auto SteamAudioEngine::RegisterAudioObject(SaGameObjectId const& objectId) -> EngineNullOutcome
+    auto MaSoundEngine::RegisterAudioObject(SaGameObjectId const& objectId) -> EngineNullOutcome
     {
         AZ::Entity* entity{};
 
@@ -580,7 +579,7 @@ namespace SteamAudio
         return AZ::Failure("Not implemented.");
     }
 
-    void SteamAudioEngine::AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> event)
+    void MaSoundEngine::AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> event)
     {
         if ((event == nullptr) || m_events.contains(eventId))
         {

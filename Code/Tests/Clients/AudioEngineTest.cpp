@@ -3,8 +3,8 @@
 
 #include "Clients/SoundEngineTestFixture.h"
 #include "Engine/Id.h"
+#include "Engine/MaSoundEngine.h"
 #include "Engine/Parameters.h"
-#include "Engine/SoundEngine.h"
 #include "IAudioSystem.h"
 
 using ::testing::Return;
@@ -15,7 +15,7 @@ TEST_F(SoundEngineTestFixture, SANITY_CHECK)
 
 TEST(SoundEngine, Initialize_ImmediatelyShutdown_BothSucceed)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
 
     auto const initializeOutcome{ engine.Initialize() };
     EXPECT_TRUE(initializeOutcome.IsSuccess()) << initializeOutcome.GetError().c_str();
@@ -26,7 +26,7 @@ TEST(SoundEngine, Initialize_ImmediatelyShutdown_BothSucceed)
 
 TEST(SoundEngine, Initialized_ReportEvent_PassEmptyEventName_ReturnsFailure)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
 
     static auto constexpr nonExistentEventName{ "" };
@@ -43,7 +43,7 @@ TEST(SoundEngine, Initialized_ReportEvent_PassEmptyEventName_ReturnsFailure)
 
 TEST(SoundEngine, Initialized_ReportEvent_PassNonExistentEventName_ReturnsFailure)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
 
     [&engine]()
@@ -61,7 +61,7 @@ TEST(SoundEngine, Initialized_ReportEvent_PassNonExistentEventName_ReturnsFailur
 
 TEST(SoundEngineNativeEvents, DoNothing_ReportEvent_ReturnsSuccess)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
     auto const doNothingStartEventData{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::DoNothingEventName),
@@ -75,7 +75,7 @@ TEST(SoundEngineNativeEvents, DoNothing_ReportEvent_ReturnsSuccess)
 
 TEST(SoundEngineNativeEvents, MuteAll_ReportEvent_ReturnsSuccess)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
     auto const muteAllStartEventName{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::MuteAllEventName),
@@ -89,7 +89,7 @@ TEST(SoundEngineNativeEvents, MuteAll_ReportEvent_ReturnsSuccess)
 
 TEST(SoundEngineNativeEvents, UnmuteAll_ReportEvent_ReturnsSuccess)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
     auto const unMuteAllStartEventData{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::UnmuteAllEventName),
@@ -103,7 +103,7 @@ TEST(SoundEngineNativeEvents, UnmuteAll_ReportEvent_ReturnsSuccess)
 
 TEST(SoundEngineNativeEvents, GetFocus_ReportEvent_ReturnsSuccess)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
     auto const getFocusStartEventData{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::GetFocusEventName),
@@ -117,7 +117,7 @@ TEST(SoundEngineNativeEvents, GetFocus_ReportEvent_ReturnsSuccess)
 
 TEST(SoundEngineNativeEvents, LoseFocus_ReportEvent_ReturnsSuccess)
 {
-    SteamAudio::SteamAudioEngine engine;
+    SteamAudio::MaSoundEngine engine;
     engine.Initialize();
     auto const loseFocusStartEventData{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::LoseFocusEventName),

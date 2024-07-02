@@ -14,13 +14,13 @@
 
 namespace SteamAudio
 {
-    class SteamAudioEngine : public SoundEngineRequestBus::Handler
+    class MaSoundEngine : public SoundEngineRequestBus::Handler
     {
     public:
-        AZ_DISABLE_COPY_MOVE(SteamAudioEngine);
+        AZ_DISABLE_COPY_MOVE(MaSoundEngine);
 
-        SteamAudioEngine() = default;
-        ~SteamAudioEngine() override = default;
+        MaSoundEngine() = default;
+        ~MaSoundEngine() override = default;
 
         auto Initialize() -> EngineNullOutcome override;
 

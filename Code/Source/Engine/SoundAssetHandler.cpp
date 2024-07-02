@@ -7,7 +7,6 @@
 #include "Engine/Configuration.h"
 #include "Engine/ResourceManager.h"
 #include "Engine/SoundAsset.h"
-#include "Engine/SoundEngine.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 #include "SteamAudio/Util.h"
 

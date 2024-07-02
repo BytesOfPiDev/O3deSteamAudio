@@ -10,7 +10,7 @@
 #include "AzFramework/IO/LocalFileIO.h"
 #include "Engine/AudioSystemImplementation_steamaudio.h"
 #include "Engine/ISoundEngine.h"
-#include "Engine/SoundEngine.h"
+#include "Engine/MaSoundEngine.h"
 #include "IAudioSystemImplementation.h"
 
 class BaseTestFixture
@@ -32,7 +32,7 @@ public:
     };
 
     [[nodiscard("Only one call per test allowed. Keep a reference.")]] auto HostSoundEngine()
-        -> SteamAudio::SteamAudioEngine&
+        -> SteamAudio::MaSoundEngine&
     {
         EXPECT_FALSE(m_soundEngine.has_value())
             << "HostSoundEngine should only be called once per test.";
@@ -64,7 +64,7 @@ private:
     AZ::ComponentApplication m_app{};
     AZ::Entity* m_systemEntity{};
     AZStd::optional<SteamAudio::AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
-    AZStd::optional<SteamAudio::SteamAudioEngine> m_soundEngine{ AZStd::nullopt };
+    AZStd::optional<SteamAudio::MaSoundEngine> m_soundEngine{ AZStd::nullopt };
     AZ::IO::FileIOBase* m_prevFileIo{};
     AZStd::unique_ptr<AZ::IO::LocalFileIO> m_fileIo{};
 };
