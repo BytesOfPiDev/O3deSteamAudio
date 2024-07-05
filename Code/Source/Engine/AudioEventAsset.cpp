@@ -70,13 +70,4 @@ namespace SteamAudio
         SetEventId(m_name);
     }
 
-    void SaEventAsset::RegisterWithEngine()
-    {
-        AZ::IO::Path const soundHint{ m_sound.GetHint() };
-        SoundResourceManagerRequestBus::Broadcast(
-            &SoundResourceManagerRequests::RegisterSound,
-            m_sound,
-            AZ::Name{ soundHint.Stem().String() });
-    }
-
 }  // namespace SteamAudio

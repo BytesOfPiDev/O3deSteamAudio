@@ -23,4 +23,6 @@ set(FILES
     Source/Tools/SteamAudioLoader.cpp
     Source/Tools/SteamAudioLoader.h
 
+    Source/Engine/wav.c
+
 )

@@ -2,6 +2,9 @@
 #include "AzCore/Asset/AssetTypeInfoBus.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/Name/NameDictionary.h"
+#include "AzCore/Settings/SettingsRegistry.h"
+#include "AzCore/Settings/SettingsRegistryImpl.h"
+#include "AzCore/UnitTest/Mocks/MockSettingsRegistry.h"
 #include "AzCore/UnitTest/UnitTest.h"
 #include "AzCore/Utils/Utils.h"
 #include "AzCore/base.h"
@@ -48,6 +51,7 @@ protected:
     {
         NiceMock<ConsoleMock> m_console;
         NiceMock<SystemMock> m_system;
+        NiceMock<AZ::MockSettingsRegistry> m_settings;
     };
 
     void SetupEnvironment() override
@@ -55,6 +59,7 @@ protected:
         UnitTest::TraceBusHook::SetupEnvironment();
 
         m_mocks = new MockHolder{};
+
         m_stubEnv.pConsole = &m_mocks->m_console;
         m_stubEnv.pSystem = &m_mocks->m_system;
 
@@ -67,9 +72,6 @@ protected:
         gEnv = &m_stubEnv;
 
         m_nameDictionary = AZStd::make_unique<TestNameDictionary>();
-
-        AZ::IO::FileIOBase::GetInstance()->SetAlias(
-            "@products@", AZ::Utils::GetProjectProductPathForPlatform().c_str());
 
         SteamAudio::SteamAudioSystemComponent::RegisterFileAliases();
 

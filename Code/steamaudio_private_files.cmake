@@ -44,6 +44,7 @@ set(FILES
     Source/Engine/SoundAssetHandler.h
     Source/Engine/SoundBankAssetHandler.cpp
     Source/Engine/SoundBankAssetHandler.h
+    Source/Engine/wav.c
 
     Source/Engine/Parsing/AudioEventXmlParser.cpp
     Source/Engine/Parsing/AudioEventXmlParser.h

@@ -31,7 +31,15 @@ namespace SteamAudio
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;
 
-        void BuildRaw(
+        void BuildRawSource(
+            AssetBuilderSDK::ProcessJobRequest const& request,
+            AssetBuilderSDK::ProcessJobResponse& response) const;
+
+        void BuildWavSource(
+            AssetBuilderSDK::ProcessJobRequest const& request,
+            AssetBuilderSDK::ProcessJobResponse& response) const;
+
+        void BuildWavSourceDecoded(
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;
 

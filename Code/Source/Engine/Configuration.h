@@ -27,10 +27,10 @@ namespace SteamAudio
 
     auto GetBanksRootPath() -> AZ::IO::PathView;
 
-    static constexpr auto DefaultAudioChannels = 2;
-    static constexpr auto DefaultSampleRate = 48000;
-    static constexpr auto DefaultBitsPerSample = 16;
-    static constexpr auto DefaultFrameSize = 1024;
+    static constexpr auto DefaultAudioChannels = 2u;
+    static constexpr auto DefaultSampleRate = 48000u;
+    static constexpr auto DefaultBitsPerSample = 16u;
+    static constexpr auto DefaultFrameSize = 1024u;
 
     static constexpr auto StopAllSoundsEventName{ "StopAllSounds" };
 

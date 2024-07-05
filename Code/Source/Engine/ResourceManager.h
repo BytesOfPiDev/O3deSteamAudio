@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/EBus/EBus.h"
 #include "AzCore/Name/Name.h"
 #include "Engine/Sound.h"
@@ -17,8 +16,7 @@ namespace SteamAudio
         SoundResourceManagerRequests() = default;
         virtual ~SoundResourceManagerRequests() = default;
 
-        virtual auto RegisterSound(AZ::Data::Asset<SaSoundAsset> soundData, AZ::Name soundName)
-            -> bool = 0;
+        virtual auto RegisterSound(SaSoundAsset* soundData, AZ::Name soundName) -> bool = 0;
         virtual auto UnregisterSound(AZ::Name soundName) -> bool = 0;
 
         virtual auto CreateSound(AZ::Name soundName) -> AZ::Outcome<Sound, AZStd::string> = 0;
@@ -105,16 +103,22 @@ namespace SteamAudio
     class SoundResourceManager : protected SoundResourceManagerRequestBus::Handler
     {
     public:
+        AZ_DISABLE_COPY_MOVE(SoundResourceManager);
         AZ_TYPE_INFO_WITH_NAME_DECL(SoundResourceManager);
+
+        SoundResourceManager();
+        ~SoundResourceManager() override;
 
         void Update();
 
     protected:
-        auto RegisterSound(AZ::Data::Asset<SaSoundAsset> soundData, AZ::Name soundName)
-            -> bool override;
+        auto RegisterSound(SaSoundAsset* soundData, AZ::Name soundName) -> bool override;
         auto UnregisterSound(AZ::Name soundName) -> bool override;
 
         auto CreateSound(AZ::Name soundName) -> AZ::Outcome<Sound, AZStd::string> override;
+
+    private:
+        AZStd::unordered_set<AZ::Name> m_registeredNames{};
     };
 
 }  // namespace SteamAudio

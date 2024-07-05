@@ -26,7 +26,7 @@ void BaseTestFixture::SetUp()
     ASSERT_TRUE(m_fileIo->ResolvePath("@gemroot:SteamAudio@").has_value());
 
     AZStd::optional<AZ::IO::FixedMaxPath> const productPath =
-        AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Products");
+        AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Cache/test");
     ASSERT_TRUE(productPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@products@", productPath.value().c_str());
 

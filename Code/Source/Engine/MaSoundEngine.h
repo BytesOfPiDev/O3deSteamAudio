@@ -25,7 +25,7 @@ namespace SteamAudio
         AZ_DISABLE_COPY_MOVE(MaSoundEngine);
 
         MaSoundEngine();
-        ~MaSoundEngine() override = default;
+        ~MaSoundEngine() override;
 
         auto IsInitialized() const -> bool override
         {

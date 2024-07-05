@@ -124,6 +124,10 @@ namespace SteamAudio
             SaSoundAsset::RawExtensionRegex,
             AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
 
+        builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
+            SaSoundAsset::WavExtensionRegex,
+            AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
+
         builderDescriptor.m_busId = azrtti_typeid<SaSoundAssetBuilderWorker>();
         builderDescriptor.m_version = 0;
         builderDescriptor.m_createJobFunction =

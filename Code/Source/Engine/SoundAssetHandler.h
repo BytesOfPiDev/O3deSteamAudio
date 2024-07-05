@@ -2,13 +2,14 @@
 
 #include "AzCore/Asset/AssetManager.h"
 #include "AzCore/Asset/AssetTypeInfoBus.h"
-#include "Engine/ResourceManager.h"
+#include "Engine/ISoundEngine.h"
 
 namespace SteamAudio
 {
     class SaSoundAssetHandler
         : public AZ::Data::AssetHandler
         , public AZ::AssetTypeInfoBus::Handler
+        , protected SoundEngineNotificationBus::Handler
     {
         using Base = AZ::Data::AssetHandler;
 
@@ -66,8 +67,11 @@ namespace SteamAudio
         [[nodiscard]] auto CanCreateComponent(AZ::Data::AssetId const& assetId) const
             -> bool override;
 
+    protected:
+        void OnSoundManagerReady() const override;
+        void OnEventmanagerReady() const override;
+
     private:
         AZ::SerializeContext* m_serializeContext{};
-        AZStd::unique_ptr<IResourceManagerImpl> m_impl{};
     };
 }  // namespace SteamAudio

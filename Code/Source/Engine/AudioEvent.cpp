@@ -78,7 +78,7 @@ namespace SteamAudio
             eventAssetId, AZ::Data::AssetLoadBehavior::PreLoad) };
         eventAsset.BlockUntilLoadComplete();
 
-        m_startFunc = DefaultStartFunc();
+        m_startFunc = DefaultStartFunc(eventAsset->GetSound());
         eventAsset = {};
     }
 

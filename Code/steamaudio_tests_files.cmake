@@ -14,6 +14,7 @@ set(FILES
     Tests/Clients/SteamAudioTestEnvironment.cpp
     Tests/Clients/SteamAudioIntegrationTest.cpp
 
-    Tests/Clients/SteamAudioTest.cpp
     Tests/Clients/AudioEngineTest.cpp
+    Tests/Clients/SoundAssetTest.cpp
+    Tests/Clients/SteamAudioTest.cpp
 )

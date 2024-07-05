@@ -45,8 +45,7 @@ namespace SteamAudio
             "Failed to initialize miniaudio resource manager");
     }
 
-    SaSoundAssetHandler::SaSoundAssetHandler()
-        : m_impl(AZStd::make_unique<SaResourceManager>()){};
+    SaSoundAssetHandler::SaSoundAssetHandler() = default;
 
     SaSoundAssetHandler::~SaSoundAssetHandler() = default;
 
@@ -55,20 +54,17 @@ namespace SteamAudio
         bool /*loadStageSucceeded*/,
         bool /*isReload*/)
     {
-        AZ::Data::Asset<SaSoundAsset> soundAsset{ asset };
         auto const assetHint{ AZ::IO::Path{ asset.GetHint() } };
 
         AZ_Error(
             TYPEINFO_Name(),
-            soundAsset->IsLoading(true),
+            asset->IsLoading(true),
             "Expected asset to be in the loading or queued to load state.");
 
         SoundResourceManagerRequestBus::Broadcast(
             &SoundResourceManagerRequests::RegisterSound,
-            AZStd::move(soundAsset),
+            asset.GetAs<SaSoundAsset>(),
             AZ::Name{ assetHint.Stem().String() });
-
-        soundAsset.Reset();
 
         AZ::Data::AssetManagerBus::Broadcast(
             &AZ::Data::AssetManagerBus::Events::OnAssetReady, asset);
@@ -195,5 +191,13 @@ namespace SteamAudio
     {
         AZ::IO::Path const assetPath = Util::GetAssetPath(id);
         return assetPath.Match(SaSoundAsset::ProductExtensionWildcard);
+    }
+
+    void SaSoundAssetHandler::OnSoundManagerReady() const
+    {
+    }
+
+    void SaSoundAssetHandler::OnEventmanagerReady() const
+    {
     }
 }  // namespace SteamAudio

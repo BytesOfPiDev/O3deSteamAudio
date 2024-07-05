@@ -2,7 +2,7 @@
 
 #include "Engine/SoundAsset.h"
 
-#include "miniaudio.h"
+#include "SteamAudio/MiniAudio.h"
 
 namespace SteamAudio
 {
@@ -30,8 +30,7 @@ namespace SteamAudio
     {
     }
 
-    auto SoundResourceManager::RegisterSound(
-        AZ::Data::Asset<SaSoundAsset> soundData, AZ::Name soundName) -> bool
+    auto SoundResourceManager::RegisterSound(SaSoundAsset* soundData, AZ::Name soundName) -> bool
     {
         AZ_Info(TYPEINFO_Name(), "Registering %s with the resource manager.", soundName.GetCStr());
 
@@ -44,13 +43,36 @@ namespace SteamAudio
             soundData->GetChannelCount(),
             soundData->GetSampleRate()) };
 
-        return result == MA_SUCCESS;
+        if (result != MA_SUCCESS)
+        {
+            return false;
+        }
+
+        m_registeredNames.insert(AZStd::move(soundName));
+        return true;
     }
 
     auto SoundResourceManager::UnregisterSound(AZ::Name soundName) -> bool
     {
+        // We only unregister names we've previously registered.
+        if (!m_registeredNames.contains(soundName))
+        {
+            AZ_Warning(
+                TYPEINFO_Name(),
+                false,
+                "Attempting to unregister sound we did not register. Refusing.");
+
+            return false;
+        }
+
         auto const result =
             ma_resource_manager_unregister_data(GetResourceManager(), soundName.GetCStr());
+
+        if (result != MA_SUCCESS)
+        {
+            AZ_Error(TYPEINFO_Name(), false, "Failed to unregister sound. Error: %i", result);
+            return false;
+        }
 
         return result == MA_SUCCESS;
     }
@@ -58,5 +80,29 @@ namespace SteamAudio
     auto SoundResourceManager::CreateSound(AZ::Name) -> AZ::Outcome<Sound, AZStd::string>
     {
         return AZ::Failure("Unimplemented");
+    }
+
+    SoundResourceManager::SoundResourceManager()
+    {
+        SoundResourceManagerRequestBus::Handler::BusConnect();
+    }
+
+    SoundResourceManager::~SoundResourceManager()
+    {
+        SoundResourceManagerRequestBus::Handler::BusDisconnect();
+
+        AZStd::ranges::for_each(
+            m_registeredNames,
+            [](AZ::Name const& soundName)
+            {
+                auto const result{ ma_resource_manager_unregister_file(
+                    GetResourceManager(), soundName.GetCStr()) };
+
+                AZ_Error(
+                    TYPEINFO_Name(),
+                    result != MA_SUCCESS,
+                    "Failed to unregister sound we registered during destruction. Error: %i.",
+                    result);
+            });
     }
 }  // namespace SteamAudio

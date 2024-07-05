@@ -63,8 +63,6 @@ namespace SteamAudio
             return m_sound;
         }
 
-        void RegisterWithEngine();
-
         virtual void SetEventId(AudioEventName eventName)
         {
             SetEventName(AZStd::move(eventName));

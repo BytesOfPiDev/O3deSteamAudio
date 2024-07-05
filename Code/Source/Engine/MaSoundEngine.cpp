@@ -317,7 +317,15 @@ MA_API auto ma_steamaudio_binaural_node_set_direction(
 
 namespace SteamAudio
 {
-    MaSoundEngine::MaSoundEngine() = default;
+    MaSoundEngine::MaSoundEngine()
+    {
+        AZ::Interface<ISoundEngine>::Register(this);
+    }
+
+    MaSoundEngine::~MaSoundEngine()
+    {
+        AZ::Interface<ISoundEngine>::Unregister(this);
+    }
 
     auto MaSoundEngine::Initialize() -> EngineNullOutcome
     {
@@ -326,7 +334,6 @@ namespace SteamAudio
             return AZ::Success();
         }
 
-        AZ::Interface<ISoundEngine>::Register(this);
         m_contextSettings.version = STEAMAUDIO_VERSION;
 
         if (auto const outcome{ InitMiniAudio() }; !outcome.IsSuccess())
@@ -455,7 +462,6 @@ namespace SteamAudio
                     AZ::Data::AssetLoadParameters{}) };
 
                 asset.BlockUntilLoadComplete();
-                asset->RegisterWithEngine();
 
                 auto event{ AZStd::make_unique<SaEvent>(asset.GetId()) };
 
@@ -527,7 +533,6 @@ namespace SteamAudio
         m_events.clear();
         m_eventAssets.clear();
 
-        AZ::Interface<ISoundEngine>::Unregister(this);
         ShutdownMiniAudio();
 
         m_initialized = false;

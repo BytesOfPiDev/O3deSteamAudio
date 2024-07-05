@@ -2,7 +2,9 @@
 
 #include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Asset/AssetManagerBus.h"
+#include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/Path/Path.h"
+#include "AzCore/std/containers/vector.h"
 
 namespace SteamAudio::Util
 {
@@ -38,4 +40,46 @@ namespace SteamAudio::Util
     private:
         DeferFunc m_func;
     };
+
+    AZ_TYPE_INFO_SPECIALIZE_WITH_NAME(
+        AZStd::byte, "30D9E644-F617-4F06-8B33-F0E04470E7B9", "AZStdByte");
+
+    static inline auto LoadFileIntoBuffer(AZStd::string const& filename)
+        -> AZStd::vector<AZStd::byte>
+    {
+        auto* const fs{ AZ::IO::FileIOBase::GetInstance() };
+        if (!fs)
+        {
+            AZ_Error("Testing", fs != nullptr, "FileIO is null!");
+            return {};
+        }
+
+        AZ::IO::HandleType fileHandle{};
+
+        AZ::IO::Result const openInputFileResult = fs->Open(
+            filename.c_str(),
+            AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary,
+            fileHandle);
+
+        if (openInputFileResult != AZ::IO::ResultCode::Success)
+        {
+            AZ_Error("Testing", false, "Unable to open '%s'", filename.c_str());
+            fs->Close(fileHandle);
+            return {};
+        }
+
+        AZ::u64 filesize{};
+        fs->Size(fileHandle, filesize);
+        AZStd::vector<AZStd::byte> buffer(filesize);
+        fs->Read(fileHandle, buffer.data(), filesize, true);
+
+        AZ_Info(
+            "LoadAudioBuffer",
+            "Read '%s' | Size: %llu | Bytes Read: %llu",
+            filename.c_str(),
+            buffer.size(),
+            filesize);
+
+        return buffer;
+    }
 }  // namespace SteamAudio::Util

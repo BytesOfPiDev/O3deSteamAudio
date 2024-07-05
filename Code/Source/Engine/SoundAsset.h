@@ -1,11 +1,14 @@
 #pragma once
 
-#include "AudioAllocators.h"
+#include "IAudioInterfacesCommonData.h"
+
 #include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Name/Name.h"
+
+#include <SteamAudio/SteamAudioBus.h>
+
 #include "Engine/Configuration.h"
 #include "Engine/ISoundEngine.h"
-#include "IAudioInterfacesCommonData.h"
 
 extern "C" {
 struct ma_engine;
@@ -54,7 +57,10 @@ namespace SteamAudio
         AZ_DISABLE_COPY_MOVE(SaSoundAsset);
         AZ_CLASS_ALLOCATOR_DECL;
 
-        using Buffer = AZStd::vector<AZStd::byte, Audio::AudioImplStdAllocator>;
+        using ByteBuffer = AZStd::vector<AZ::u8>;
+        using ByteBufferView = AZStd::span<AZ::u8 const>;
+        using Buffer = ByteBuffer;
+        using BufferView = ByteBufferView;
 
         struct ISoundImpl
         {
@@ -66,7 +72,17 @@ namespace SteamAudio
         SaSoundAsset(
             Audio::AudioInputSourceType sourceType,
             Audio::AudioInputSampleType sampleType,
+            AZ::u32 channelCount,
+            AZ::u32 sampleRate,
             Buffer buffer);
+
+        SaSoundAsset(
+            Audio::AudioInputSourceType sourceType,
+            Audio::AudioInputSampleType sampleType,
+            AZ::u32 channelCount,
+            AZ::u32 sampleRate,
+            BufferView buffer);
+
         ~SaSoundAsset() override;
 
         static constexpr auto ProductExtension{ "sasound" };
@@ -87,10 +103,32 @@ namespace SteamAudio
         static constexpr auto AssetGroup = "Sound";
         static constexpr auto AssetSubId = 1u;
 
-        [[nodiscard]] auto GetBuffer() const -> AZStd::span<AZStd::byte const>
+        [[nodiscard]] auto GetBuffer() const -> BufferView
         {
             return m_buffer;
         }
+
+        /// Set encoded data
+        void SetAudioData(Audio::AudioInputSourceType sourceType, Buffer buffer);
+
+        /// Set encoded data
+        void SetAudioData(Audio::AudioInputSourceType sourceType, BufferView buffer);
+
+        /// Set decoded data
+        void SetAudioData(
+            Audio::AudioInputSourceType sourceType,
+            Audio::AudioInputSampleType sampleType,
+            AZ::u32 channelCount,
+            AZ::u32 sampleRate,
+            Buffer buffer);
+
+        /// Set decoded data
+        void SetAudioData(
+            Audio::AudioInputSourceType sourceType,
+            Audio::AudioInputSampleType sampleType,
+            AZ::u32 channelCount,
+            AZ::u32 sampleRate,
+            BufferView buffer);
 
         [[nodiscard]] auto GetSourceType() const -> Audio::AudioInputSourceType
         {
@@ -114,20 +152,15 @@ namespace SteamAudio
 
         [[nodiscard]] auto GetFrameCount() const -> AZ::u64
         {
-            return m_frameCount;
+            return m_buffer.size() / sizeof(float);
         }
 
         void CopySoundInto(ma_sound*);
-
-    protected:
-        void OnSoundManagerReady() const override {};
-        void OnEventmanagerReady() const override {};
 
     private:
         Audio::AudioInputSourceType m_sourceType{ Audio::AudioInputSourceType::Unsupported };
         Audio::AudioInputSampleType m_sampleType{ Audio::AudioInputSampleType::Unsupported };
         Buffer m_buffer{};
-        AZ::u64 m_frameCount{};
         AZ::u32 m_channels{ DefaultAudioChannels };
         AZ::u32 m_sampleRate{ DefaultSampleRate };
 

@@ -10,39 +10,12 @@
 
 #include "Clients/BaseTestFixture.h"
 #include "Engine/AudioSource.h"
+#include "SteamAudio/Util.h"
 
 static constexpr auto TestInputFile{ "@gemroot:SteamAudio@/Test/Assets/inputaudio.raw" };
 static constexpr auto TestSamplingRate = 44100;
 static constexpr auto TestFrameSize = 1024;
 static constexpr auto TestBitsPerSample = 32;
-
-auto LoadInputAudio(AZStd::string const& filename) -> AZStd::vector<float>
-{
-    auto fs{ AZ::IO::FileIOBase::GetInstance() };
-
-    AZ::IO::HandleType fileHandle{};
-
-    AZ::IO::Result const openInputFileResult = fs->Open(
-        filename.c_str(), AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary, fileHandle);
-
-    EXPECT_EQ(openInputFileResult.GetResultCode(), AZ::IO::ResultCode::Success);
-
-    if (openInputFileResult != AZ::IO::ResultCode::Success)
-    {
-        fs->Close(fileHandle);
-        return {};
-    }
-
-    AZ::u64 filesize{};
-    fs->Size(fileHandle, filesize);
-
-    auto numsamples = static_cast<int>(filesize / sizeof(float));
-
-    AZStd::vector<float> inputaudio(numsamples);
-    fs->Read(fileHandle, reinterpret_cast<char*>(inputaudio.data()), filesize, true);
-
-    return inputaudio;
-}
 
 void SaveOutputAudio(AZStd::string const& filename, AZStd::vector<float> outputaudio)
 {
@@ -71,7 +44,8 @@ void SaveOutputAudio(AZStd::string const& filename, AZStd::vector<float> outputa
 
 TEST_F(BaseTestFixture, RunSteamAudioExample_ExportsOutputAudio)
 {
-    auto inputaudio = LoadInputAudio("@gemroot:SteamAudio@/Test/Assets/inputaudio.raw");
+    auto inputaudio =
+        SteamAudio::Util::LoadFileIntoBuffer("@gemroot:SteamAudio@/Test/Assets/inputaudio.raw");
 
     ASSERT_GT(inputaudio.size(), 0);
 
@@ -99,14 +73,17 @@ TEST_F(BaseTestFixture, RunSteamAudioExample_ExportsOutputAudio)
     AZStd::vector<float> outputaudioframe(static_cast<float>(2 * TestFrameSize));
     AZStd::vector<float> outputaudio;
 
-    auto numframes = static_cast<int>(inputaudio.size() / TestFrameSize);
+    auto const numSamples{ inputaudio.size() / sizeof(float) };
+    auto numframes = static_cast<int>(numSamples / TestFrameSize);
     ASSERT_GT(numframes, 0);
-    float* inData[] = { inputaudio.data() };
 
-    IPLAudioBuffer inBuffer{ 1, audioSettings.frameSize, inData };
+    auto* const rawFileBufferAsVoid = static_cast<void*>(inputaudio.data());
+    float* fileBufferAsFloat[] = { static_cast<float*>(rawFileBufferAsVoid) };
 
-    IPLAudioBuffer outBuffer;
-    iplAudioBufferAllocate(context, 2, audioSettings.frameSize, &outBuffer);
+    IPLAudioBuffer steamAudioBufferInput{ 1, audioSettings.frameSize, fileBufferAsFloat };
+
+    IPLAudioBuffer steamAudioBufferOutput;
+    iplAudioBufferAllocate(context, 2, audioSettings.frameSize, &steamAudioBufferOutput);
 
     size_t counter{};
     for (auto i = 0; i < numframes; ++i)
@@ -119,21 +96,21 @@ TEST_F(BaseTestFixture, RunSteamAudioExample_ExportsOutputAudio)
         params.hrtf = hrtf;
         params.peakDelays = nullptr;
 
-        iplBinauralEffectApply(effect, &params, &inBuffer, &outBuffer);
+        iplBinauralEffectApply(effect, &params, &steamAudioBufferInput, &steamAudioBufferOutput);
 
-        iplAudioBufferInterleave(context, &outBuffer, outputaudioframe.data());
+        iplAudioBufferInterleave(context, &steamAudioBufferOutput, outputaudioframe.data());
 
         AZStd::copy(
             AZStd::begin(outputaudioframe),
             AZStd::end(outputaudioframe),
             AZStd::back_inserter(outputaudio));
 
-        inData[0] += audioSettings.frameSize;
+        fileBufferAsFloat[0] += audioSettings.frameSize;
     }
 
     EXPECT_GT(counter, 0);
 
-    iplAudioBufferFree(context, &outBuffer);
+    iplAudioBufferFree(context, &steamAudioBufferOutput);
     iplBinauralEffectRelease(&effect);
     iplHRTFRelease(&hrtf);
     iplContextRelease(&context);

@@ -16,8 +16,7 @@ namespace SteamAudio
         // Put your public methods here
     };
 
-    class SteamAudioBusTraits
-        : public AZ::EBusTraits
+    class SteamAudioBusTraits : public AZ::EBusTraits
     {
     public:
         //////////////////////////////////////////////////////////////////////////
@@ -30,4 +29,4 @@ namespace SteamAudio
     using SteamAudioRequestBus = AZ::EBus<SteamAudioRequests, SteamAudioBusTraits>;
     using SteamAudioInterface = AZ::Interface<SteamAudioRequests>;
 
-} // namespace SteamAudio
+}  // namespace SteamAudio
