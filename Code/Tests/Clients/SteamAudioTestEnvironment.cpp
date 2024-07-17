@@ -85,14 +85,15 @@ protected:
 
     void TeardownEnvironment() override
     {
-        UnitTest::TraceBusHook::TeardownEnvironment();
-
+        AZ::IO::FileIOBase::SetInstance(nullptr);
+        m_stubEnv.pFileIO = nullptr;
         m_fileIo = nullptr;
 
         m_nameDictionary = nullptr;
-
         delete m_mocks;
         m_mocks = nullptr;
+
+        UnitTest::TraceBusHook::TeardownEnvironment();
     }
 
 private:

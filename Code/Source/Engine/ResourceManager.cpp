@@ -2,6 +2,7 @@
 
 #include "Engine/SoundAsset.h"
 
+#include "IAudioInterfacesCommonData.h"
 #include "SteamAudio/MiniAudio.h"
 
 namespace SteamAudio
@@ -34,16 +35,37 @@ namespace SteamAudio
     {
         AZ_Info(TYPEINFO_Name(), "Registering %s with the resource manager.", soundName.GetCStr());
 
-        auto const result{ ma_resource_manager_register_decoded_data(
-            GetResourceManager(),
-            soundName.GetCStr(),
-            soundData->GetBuffer().data(),
-            soundData->GetFrameCount(),
-            ma_format_f32,
-            soundData->GetChannelCount(),
-            soundData->GetSampleRate()) };
+        static constexpr auto registerEncodedData = [](SaSoundAsset const* soundData,
+                                                       AZStd::string_view soundName) -> ma_result
+        {
+            return ma_resource_manager_register_encoded_data(
+                GetResourceManager(),
+                soundName.data(),
+                soundData->GetBuffer().data(),
+                soundData->GetBuffer().size());
+        };
 
-        if (result != MA_SUCCESS)
+        static constexpr auto registerDecodedData =
+            [](SaSoundAsset const* soundData, AZStd::string_view soundName)
+        {
+            return ma_resource_manager_register_decoded_data(
+                GetResourceManager(),
+                soundName.data(),
+                soundData->GetBuffer().data(),
+                soundData->GetFrameCount(),
+                ma_format_f32,
+                soundData->GetChannelCount(),
+                soundData->GetSampleRate());
+        };
+
+        if (soundData->GetSourceType() == Audio::AudioInputSourceType::WavFile &&
+            !registerEncodedData(soundData, soundName.GetStringView()))
+        {
+            return false;
+        }
+
+        if (soundData->GetSourceType() == Audio::AudioInputSourceType::PcmFile &&
+            registerDecodedData(soundData, soundName.GetStringView()))
         {
             return false;
         }

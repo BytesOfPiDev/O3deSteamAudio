@@ -85,7 +85,7 @@ namespace SteamAudio
         }
         else if (AZ::StringFunc::Equal(request.m_jobDescription.m_jobKey, BuildWavSourceKey))
         {
-            BuildWavSource(request, response);
+            BuildWavSourceDecoded(request, response);
         }
         else
         {

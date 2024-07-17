@@ -262,7 +262,7 @@ namespace SteamAudio
 
         auto result{ Audio::EAudioRequestStatus::Failure };
 
-        auto* implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData) };
+        auto* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData) };
         auto* implEventData{ static_cast<SATLEventData_steamaudio*>(eventData) };
         auto* const implTriggerData{ static_cast<SATLTriggerImplData_steamaudio const*>(
             triggerData) };
@@ -282,6 +282,12 @@ namespace SteamAudio
             result.m_eventId = implTriggerData->GetImplEventId();
             return result;
         }();
+
+        if (!m_engine)
+        {
+            AZ_Error(TYPEINFO_Name(), false, "No SteamAudio engine!");
+            return Audio::EAudioRequestStatus::Failure;
+        }
 
         auto const reportEventOutcome{ m_engine->ReportEvent(startEventData) };
         if (!reportEventOutcome.IsSuccess())

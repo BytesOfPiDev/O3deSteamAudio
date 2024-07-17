@@ -317,6 +317,13 @@ MA_API auto ma_steamaudio_binaural_node_set_direction(
 
 namespace SteamAudio
 {
+    static constexpr auto HelloWorldAssetId{ "959961C5-372D-4434-B836-202136CE8006" };
+    static constexpr auto MuteAllAssetId{ "6CA6189A-7A36-4FCA-A801-BDF5911085BC" };
+    static constexpr auto UnmuteAllAssetId{ "57D99443-73BD-49B3-AE9D-7135A64D92D9" };
+    static constexpr auto GetFocusAssetId{ "70DE9CF7-8A00-40FD-B4DD-063B863B2626" };
+    static constexpr auto LoseFocusAssetId{ "5542942A-848F-47A1-8B8D-3376914A6855" };
+    static constexpr auto DoNothingAssetId{ "68C7A00D-4A9F-4AC5-A5B8-C481B9A60E38" };
+
     MaSoundEngine::MaSoundEngine()
     {
         AZ::Interface<ISoundEngine>::Register(this);
@@ -345,81 +352,81 @@ namespace SteamAudio
         LoadNativeEvents();
         LoadEventAssets();
 
+        m_initialized = true;
         AZ_Info(TYPEINFO_Name(), "Steam Audio Engine initialized.");
         return AZ::Success();
     }
 
     void MaSoundEngine::LoadNativeEvents()
     {
-        auto muteAllEvent{ AZStd::make_unique<SaEvent>(
-            SaEvent::StartFunc{ [soundEngine = this]()
-                                {
-                                    soundEngine->MuteAll();
-                                } },
-            SaEvent::StopFunc{}) };
-
-        auto unmuteAll{ AZStd::make_unique<SaEvent>(
-            SaEvent::StartFunc{ [soundEngine = this]()
-                                {
-                                    soundEngine->UnmuteAll();
-                                } },
-            SaEvent::StopFunc{}) };
-
-        auto getFocusEvent{ AZStd::make_unique<SaEvent>(
-            SaEvent::StartFunc{ [soundEngine = this]()
-                                {
-                                    soundEngine->GetFocus();
-                                } },
-            SaEvent::StopFunc{}) };
-
-        auto loseFocusEvent{ AZStd::make_unique<SaEvent>(
-            SaEvent::StartFunc{ [soundEngine = this]()
-                                {
-                                    soundEngine->LoseFocus();
-                                } },
-            SaEvent::StopFunc{}) };
-
-        [this]()
+        if (!AZ::Data::AssetManager::IsReady())
         {
-            auto doNothingEvent{ AZStd::make_unique<SaEvent>(
-                SaEvent::StartFunc{ [soundEngine = this]()
-                                    {
-                                        soundEngine->DoNothing();
-                                    } },
-                SaEvent::StopFunc{}) };
+            AZ_Error(
+                TYPEINFO_Name(),
+                false,
+                "The asset manager isn't ready. Unable to create native events");
 
-            m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::DoNothingEventName),
-                              AZStd::move(doNothingEvent) });
+            return;
+        }
+
+        [this]() -> void
+        {
+            auto doNothingEventAsset{
+                AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                    AZ::Data::AssetId{ DoNothingAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+            };
+
+            AZ::Data::AssetInfo assetInfo{ AZ::Data::AssetId{ DoNothingAssetId },
+                                           AZ::Data::AssetType{ SteamAudio::SaEventAssetTypeId } };
+
+            AZ::Data::AssetCatalogRequestBus::Broadcast(
+                &AZ::Data::AssetCatalogRequests::RegisterAsset,
+                AZ::Data::AssetId{ DoNothingAssetId },
+                assetInfo);
+
+            m_eventAssets.insert({ Audio::AudioStringToID<SaEventId>(Events::DoNothingEventName),
+                                   doNothingEventAsset });
         }();
 
-        [this]()
-        {
-            auto helloWorldEvent{ AZStd::make_unique<SaEvent>(
-                SaEvent::StartFunc{ [soundEngine = this]()
-                                    {
-                                        soundEngine->DoNothing();
-                                    } },
-                SaEvent::StopFunc{}) };
+        auto const helloWorldEventAsset{
+            AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                AZ::Data::AssetId{ HelloWorldAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+        };
 
-            m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::HelloWorldEventName),
-                              AZStd::move(helloWorldEvent) });
-        }();
+        m_eventAssets.insert({ Audio::AudioStringToID<SaEventId>(Events::HelloWorldEventName),
+                               helloWorldEventAsset });
 
-        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::MuteAllEventName),
-                          AZStd::move(muteAllEvent) });
-        muteAllEvent = nullptr;
+        auto const muteAllEventAsset{
+            AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                AZ::Data::AssetId{ MuteAllAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+        };
 
-        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::UnmuteAllEventName),
-                          AZStd::move(unmuteAll) });
-        unmuteAll = nullptr;
+        m_eventAssets.insert(
+            { Audio::AudioStringToID<SaEventId>(Events::MuteAllEventName), muteAllEventAsset });
 
-        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::GetFocusEventName),
-                          AZStd::move(getFocusEvent) });
-        getFocusEvent = nullptr;
+        auto const unmuteAllEventAsset{
+            AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                AZ::Data::AssetId{ UnmuteAllAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+        };
 
-        m_events.insert({ Audio::AudioStringToID<SaEventId>(Events::LoseFocusEventName),
-                          AZStd::move(loseFocusEvent) });
-        loseFocusEvent = nullptr;
+        m_eventAssets.insert(
+            { Audio::AudioStringToID<SaEventId>(Events::UnmuteAllEventName), unmuteAllEventAsset });
+
+        auto const getFocusEventAsset{
+            AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                AZ::Data::AssetId{ GetFocusAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+        };
+
+        m_eventAssets.insert(
+            { Audio::AudioStringToID<SaEventId>(Events::GetFocusEventName), getFocusEventAsset });
+
+        auto const loseFocusEventAsset{
+            AZ::Data::AssetManager::Instance().FindOrCreateAsset<SaEventAsset>(
+                AZ::Data::AssetId{ LoseFocusAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
+        };
+
+        m_eventAssets.insert(
+            { Audio::AudioStringToID<SaEventId>(Events::LoseFocusEventName), loseFocusEventAsset });
     }
 
     void MaSoundEngine::LoadEventAssets()
@@ -463,19 +470,14 @@ namespace SteamAudio
 
                 asset.BlockUntilLoadComplete();
 
-                auto event{ AZStd::make_unique<SaEvent>(asset.GetId()) };
+                m_eventAssets.insert({ asset->GetEventId(), AZStd::move(asset) });
 
-                m_eventAssets.insert({ asset->GetEventId(), asset });
                 AZ_Warning(
                     TYPEINFO_Name(),
                     false,
                     "LoadEventAsset [Name: %s | Id: %lu",
                     asset->GetEventName().c_str(),
                     asset->GetEventId());
-
-                // FIXME: Actually add an valid event
-                m_events.insert({ asset->GetEventId(), AZStd::move(event) });
-                event = nullptr;
             }
         }
 
@@ -483,23 +485,22 @@ namespace SteamAudio
             TYPEINFO_Name(), resolvedPathOutcome.has_value(), "Failed to resolve events alias.");
     }
 
-    auto MaSoundEngine::FindEvent(SaEventId eventId) const -> AZ::Outcome<SaEvent*, AZStd::string>
+    auto MaSoundEngine::FindEvent(SaEventId eventId) const
+        -> AZ::Outcome<AZ::Data::Asset<SaEventAsset>, AZStd::string>
     {
-        auto iter{ m_events.find(eventId) };
-        if (iter == AZStd::end(m_events))
+        auto iter{ m_eventAssets.find(eventId) };
+        if (iter == AZStd::end(m_eventAssets))
         {
             static constexpr auto errorFormat{
                 "The event id '%llu' does not exist. Known Events: %lu"
             };
             return AZ::Failure(AZStd::string::format(
-                errorFormat, aznumeric_cast<AZ::u64>(eventId), m_events.size()));
+                errorFormat, aznumeric_cast<AZ::u64>(eventId), m_eventAssets.size()));
         }
 
         auto const& [key, value]{ *iter };
 
-        AZ_Verify(value != nullptr, "The event should never be null!");
-
-        return AZ::Success(value.get());
+        return AZ::Success(value);
     }
 
     auto MaSoundEngine::FindObject(SaGameObjectId /*id*/) -> AZ::Outcome<AudioObject*>
@@ -510,32 +511,31 @@ namespace SteamAudio
     auto MaSoundEngine::ReportEvent(StartEventData const& startEventData) -> EngineNullOutcome
     {
         auto const outcome{ FindEvent(startEventData.m_eventId) };
-        auto* event{ outcome.GetValueOr(nullptr) };
-        if (event == nullptr)
+        if (!outcome.IsSuccess())
         {
             return AZ::Failure(
                 AZStd::string::format("Report event failed [%s]", outcome.GetError().c_str()));
         }
 
-        event->Start();
-
+        // TODO: Start event
         return AZ::Success();
     }
 
     auto MaSoundEngine::Shutdown() -> EngineNullOutcome
     {
-        if (!m_initialized)
+        if (!IsInitialized())
         {
             return AZ::Success();
         }
 
+        m_initialized = false;
+
         m_registeredObjects.clear();
-        m_events.clear();
         m_eventAssets.clear();
+        m_activeEvents.clear();
 
         ShutdownMiniAudio();
 
-        m_initialized = false;
         return AZ::Success();
     }
 
@@ -587,13 +587,4 @@ namespace SteamAudio
         return AZ::Failure("Not implemented.");
     }
 
-    void MaSoundEngine::AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> event)
-    {
-        if ((event == nullptr) || m_events.contains(eventId))
-        {
-            return;
-        }
-
-        m_events.insert({ eventId, AZStd::move(event) });
-    }
 }  // namespace SteamAudio

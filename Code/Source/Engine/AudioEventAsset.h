@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
+#include "Engine/AudioEvent.h"
 #include "Engine/Id.h"
 #include "Engine/SoundAsset.h"
 #include "IAudioInterfacesCommonData.h"
@@ -55,7 +56,7 @@ namespace SteamAudio
 
         [[nodiscard]] virtual auto GetEventId() const -> Audio::TAudioEventID
         {
-            return m_id;
+            return m_eventId;
         }
 
         [[nodiscard]] virtual auto GetSound() const -> AZ::Data::Asset<SaSoundAsset>
@@ -68,10 +69,7 @@ namespace SteamAudio
             SetEventName(AZStd::move(eventName));
         }
 
-        auto CloneEvent() -> SaId
-        {
-            return {};
-        }
+        [[nodiscard]] auto CloneEvent() const -> AZStd::unique_ptr<SaEvent>;
 
         void PlayEvent() const
         {
@@ -81,7 +79,7 @@ namespace SteamAudio
         void UpdateId();
 
     private:
-        SaEventId m_id{};
+        SaEventId m_eventId{};
         AudioEventName m_name{};
         AZ::Data::Asset<SaSoundAsset> m_sound{};
     };

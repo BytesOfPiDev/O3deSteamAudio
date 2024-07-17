@@ -5,15 +5,23 @@
 class SoundEngineTestFixture : public BaseTestFixture
 {
 public:
+    auto GetEngine() -> SteamAudio::MaSoundEngine&
+    {
+        return m_engine;
+    }
+
+protected:
     void SetUp() override
     {
         BaseTestFixture::SetUp();
-        HostAudioSystemImpl();
+        m_engine.Initialize();
     }
-
     void TearDown() override
     {
-        DestroyAudioSystemImpl();
+        m_engine.Shutdown();
         BaseTestFixture::TearDown();
     }
+
+private:
+    SteamAudio::MaSoundEngine m_engine;
 };

@@ -30,7 +30,7 @@ namespace SteamAudio
                 ->Version(2)
                 ->Attribute(AZ::Edit::Attributes::EnableForAssetEditor, true)
                 ->Field("Name", &SaEventAsset::m_name)
-                ->Field("EventId", &SaEventAsset::m_id)
+                ->Field("EventId", &SaEventAsset::m_eventId)
                 ->Field("Sound", &SaEventAsset::m_sound);
 
             if (AZ::EditContext* edit = serialize->GetEditContext())
@@ -62,12 +62,17 @@ namespace SteamAudio
     {
         m_name = AZStd::move(eventName);
         eventName = "";
-        m_id = Audio::AudioStringToID<SaEventId>(m_name.c_str());
+        m_eventId = Audio::AudioStringToID<SaEventId>(m_name.c_str());
     }
 
     void SaEventAsset::UpdateId()
     {
         SetEventId(m_name);
+    }
+
+    auto SaEventAsset::CloneEvent() const -> AZStd::unique_ptr<SaEvent>
+    {
+        return AZStd::make_unique<SaEvent>(m_assetId);
     }
 
 }  // namespace SteamAudio

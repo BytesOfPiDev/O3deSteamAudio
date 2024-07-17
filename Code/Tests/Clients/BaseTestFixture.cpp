@@ -1,9 +1,30 @@
 #include "Clients/BaseTestFixture.h"
 
+#include "AzCore/Asset/AssetManager.h"
+#include "AzCore/Asset/AssetManagerComponent.h"
+#include "AzCore/Component/Component.h"
 #include "AzCore/Component/ComponentApplication.h"
 #include "AzCore/IO/FileIO.h"
+#include "AzCore/IO/Streamer/StreamerComponent.h"
+#include "AzCore/Interface/Interface.h"
+#include "AzCore/Jobs/JobManagerComponent.h"
 #include "AzCore/Settings/SettingsRegistry.h"
-#include "AzCore/Utils/Utils.h"
+
+class BaseApp : public AZ::ComponentApplication
+{
+public:
+    auto GetRequiredSystemComponents() const -> AZ::ComponentTypeList override
+    {
+        auto required{ AZ::ComponentTypeList{} };
+        required.push_back(azrtti_typeid<AZ::StreamerComponent>());
+        required.push_back(azrtti_typeid<AZ::JobManagerComponent>());
+        required.push_back(azrtti_typeid<AZ::AssetManagerComponent>());
+        required.push_back(azrtti_typeid<AZ::StreamerComponent>());
+        required.push_back(azrtti_typeid<AZ::JobManagerComponent>());
+
+        return required;
+    }
+};
 
 void BaseTestFixture::SetUp()
 {
@@ -15,9 +36,14 @@ void BaseTestFixture::SetUp()
 
     AZ::ComponentApplication::Descriptor appDesc;
     AZ::ComponentApplication::StartupParameters startupParams;
-
     startupParams.m_loadSettingsRegistry = true;
-    m_systemEntity = m_app.Create(appDesc, startupParams);
+    startupParams.m_loadAssetCatalog = false;
+
+    m_app = AZStd::make_unique<BaseApp>();
+
+    m_app->RegisterComponentDescriptor(AZ::AssetManagerComponent::CreateDescriptor());
+
+    m_systemEntity = m_app->Create(appDesc, startupParams);
 
     m_systemEntity->Init();
     m_systemEntity->Activate();
@@ -34,22 +60,19 @@ void BaseTestFixture::SetUp()
         AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Assets");
     ASSERT_TRUE(testAssetPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@assets@", testAssetPath.value().c_str());
+
+    m_audioEventAssetHandler.Register();
+    m_soundAssetHandler.Register();
 }
 
 void BaseTestFixture::TearDown()
 {
-    if (m_audioSystemImpl.has_value())
-    {
-        m_audioSystemImpl.reset();
-    }
-
-    if (m_soundEngine.has_value())
-    {
-        m_soundEngine.reset();
-    }
+    m_soundAssetHandler.Unregister();
+    m_audioEventAssetHandler.Unregister();
 
     m_systemEntity = nullptr;
-    m_app.Destroy();
+    m_app->Destroy();
+    m_app = nullptr;
 
     AZ::IO::FileIOBase::SetInstance(nullptr);
     m_fileIo = nullptr;

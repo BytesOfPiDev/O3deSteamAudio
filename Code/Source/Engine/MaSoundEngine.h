@@ -44,7 +44,6 @@ namespace SteamAudio
         auto ReportEvent(StartEventData const&) -> EngineNullOutcome override;
 
     protected:
-        void AddEvent(SaEventId eventId, AZStd::unique_ptr<SteamAudio::SaEvent> /*event*/);
         auto InitMiniAudio() -> EngineNullOutcome;
         auto ShutdownMiniAudio() -> EngineNullOutcome;
 
@@ -52,7 +51,7 @@ namespace SteamAudio
         void LoadEventAssets();
 
         [[nodiscard]] auto FindEvent(SaEventId eventId) const
-            -> AZ::Outcome<SaEvent*, AZStd::string>;
+            -> AZ::Outcome<AZ::Data::Asset<SaEventAsset>, AZStd::string>;
         auto FindObject(SaGameObjectId id) -> AZ::Outcome<AudioObject*>;
 
     private:
@@ -74,7 +73,7 @@ namespace SteamAudio
             AZStd::hash<KeyType>,
             AZStd::equal_to<KeyType>,
             Audio::AudioImplStdAllocator>;
-        EventMap<SaEventId, SaEvent> m_events{};
+        EventMap<SaEventId, SaEvent> m_activeEvents{};
 
         template<typename KeyType, typename ValueType>
         using EventAssetMap = AZStd::unordered_map<
