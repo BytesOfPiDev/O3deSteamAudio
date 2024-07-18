@@ -35,6 +35,8 @@ namespace SteamAudio
         static constexpr auto AssetGroup = "Sound";
         static constexpr auto AssetSubId = 1u;
 
+        using SetupFunc = AZStd::function<AZStd::unique_ptr<SaEvent>(AZ::Data::AssetId)>;
+
         static void Reflect(AZ::ReflectContext* context);
 
         /*
@@ -45,6 +47,7 @@ namespace SteamAudio
          */
         SaEventAsset();
         explicit SaEventAsset(AudioEventName eventName);
+        SaEventAsset(AudioEventName eventName, SetupFunc setupFunc);
         ~SaEventAsset() override;
 
         virtual void SetEventName(AudioEventName eventName);
@@ -69,10 +72,15 @@ namespace SteamAudio
             SetEventName(AZStd::move(eventName));
         }
 
-        [[nodiscard]] auto CloneEvent() const -> AZStd::unique_ptr<SaEvent>;
+        [[nodiscard]] auto CreateInstance() const -> AZStd::unique_ptr<SaEvent>;
 
         void PlayEvent() const
         {
+        }
+
+        void ChangeSetupFunc(SetupFunc setupFunc)
+        {
+            m_setupFunc = AZStd::move(setupFunc);
         }
 
     protected:
@@ -82,6 +90,7 @@ namespace SteamAudio
         SaEventId m_eventId{};
         AudioEventName m_name{};
         AZ::Data::Asset<SaSoundAsset> m_sound{};
+        SetupFunc m_setupFunc{};
     };
 
     using AudioEventAssetDataPtr = AZ::Data::Asset<SaEventAsset>;

@@ -56,6 +56,12 @@ namespace SteamAudio
         eventName = "";
     }
 
+    SaEventAsset::SaEventAsset(AudioEventName eventName, SetupFunc setupFunc)
+        : m_setupFunc{ AZStd::move(setupFunc) }
+    {
+        SetEventName(AZStd::move(eventName));
+    }
+
     SaEventAsset::~SaEventAsset() = default;
 
     void SaEventAsset::SetEventName(AudioEventName eventName)
@@ -70,9 +76,9 @@ namespace SteamAudio
         SetEventId(m_name);
     }
 
-    auto SaEventAsset::CloneEvent() const -> AZStd::unique_ptr<SaEvent>
+    auto SaEventAsset::CreateInstance() const -> AZStd::unique_ptr<SaEvent>
     {
-        return AZStd::make_unique<SaEvent>(m_assetId);
+        return m_setupFunc ? m_setupFunc(m_assetId) : AZStd::make_unique<SaEvent>();
     }
 
 }  // namespace SteamAudio

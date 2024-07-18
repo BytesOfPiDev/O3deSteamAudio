@@ -10,26 +10,27 @@
 
 namespace SteamAudio
 {
-    struct DefaultStartFunc
+
+    struct PlaySoundFunc
     {
-        DefaultStartFunc()
+        PlaySoundFunc()
             : m_sound{}
         {
         }
 
-        DefaultStartFunc(AZ::Data::Asset<SaSoundAsset> const& asset)
+        PlaySoundFunc(AZ::Data::Asset<SaSoundAsset> const& asset)
             : m_asset{ asset }
         {
             m_asset ? m_asset->CopySoundInto(&m_sound) : void();
         }
 
-        DefaultStartFunc(DefaultStartFunc const& other)
+        PlaySoundFunc(PlaySoundFunc const& other)
             : m_asset{ other.m_asset }
         {
             other.m_asset ? other.m_asset->CopySoundInto(&m_sound) : void();
         }
 
-        DefaultStartFunc(DefaultStartFunc&& other)
+        PlaySoundFunc(PlaySoundFunc&& other)
             : m_asset(AZStd::move(other.m_asset))
         {
             other.m_asset = {};
@@ -38,9 +39,9 @@ namespace SteamAudio
             m_asset ? m_asset->CopySoundInto(&m_sound) : void();
         }
 
-        ~DefaultStartFunc() = default;
+        ~PlaySoundFunc() = default;
 
-        auto operator=(DefaultStartFunc const& other) -> DefaultStartFunc&
+        auto operator=(PlaySoundFunc const& other) -> PlaySoundFunc&
         {
             m_asset = other.m_asset;
             ma_sound_uninit(&m_sound);
@@ -48,7 +49,7 @@ namespace SteamAudio
 
             return *this;
         }
-        auto operator=(DefaultStartFunc&& other) -> DefaultStartFunc&
+        auto operator=(PlaySoundFunc&& other) -> PlaySoundFunc&
         {
             ma_sound_uninit(&m_sound);
             ma_sound_uninit(&other.m_sound);
@@ -61,7 +62,7 @@ namespace SteamAudio
             return *this;
         }
 
-        void operator()()
+        void operator()(SaGameObjectId)
         {
         }
 
@@ -69,17 +70,25 @@ namespace SteamAudio
         ma_sound m_sound{};
     };
 
+    using DefaultTask = PlaySoundFunc;
+
     SaEvent::SaEvent() = default;
 
     SaEvent::SaEvent(AZ::Data::AssetId eventAssetId)
         : m_startFunc()
     {
+        if (eventAssetId.IsValid())
+        {
+            AZ_Warning(__FUNCTION__, false, "Constructed with invalid id");
+            return;
+        }
+
         auto eventAsset{ AZ::Data::AssetManager::Instance().GetAsset<SaEventAsset>(
             eventAssetId, AZ::Data::AssetLoadBehavior::PreLoad) };
         eventAsset.BlockUntilLoadComplete();
         m_soundAsset = eventAsset->GetSound();
 
-        m_startFunc = DefaultStartFunc(eventAsset->GetSound());
+        m_startFunc = DefaultTask(eventAsset->GetSound());
         eventAsset = {};
     }
 
@@ -90,12 +99,12 @@ namespace SteamAudio
     void SaEvent::Start(SaGameObjectId objectId)
     {
         AZLOG(LOG_SaEvent, "SaEvent::Start(objectId: %llu)", objectId);
-        m_startFunc();
+        m_startFunc ? m_startFunc(objectId) : void();
     }
 
     void SaEvent::Stop(SaGameObjectId objectId)
     {
         AZLOG(LOG_SaEvent, "SaEvent::Stop(objectId: %llu)", objectId);
-        m_stopFunc();
+        m_stopFunc ? m_stopFunc(objectId) : void();
     };
 }  // namespace SteamAudio

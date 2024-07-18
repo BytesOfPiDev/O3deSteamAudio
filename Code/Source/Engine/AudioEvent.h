@@ -14,8 +14,8 @@ namespace SteamAudio
     public:
         AZ_DEFAULT_COPY_MOVE(SaEvent);
 
-        using StartFunc = AZStd::function<void()>;
-        using StopFunc = AZStd::function<void()>;
+        using StartFunc = AZStd::function<void(SaGameObjectId)>;
+        using StopFunc = AZStd::function<void(SaGameObjectId)>;
 
         SaEvent();
         /// Configures itself based on the given SaEventAsset
@@ -40,12 +40,8 @@ namespace SteamAudio
 
     private:
         AZ::Data::Asset<SaSoundAsset> m_soundAsset{};
-        StartFunc m_startFunc{ []()
-                               {
-                               } };
-        StopFunc m_stopFunc{ []()
-                             {
-                             } };
+        StartFunc m_startFunc{};
+        StopFunc m_stopFunc{};
 
         SaAudioEventState m_eventState{};
     };
