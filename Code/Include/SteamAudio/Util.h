@@ -4,10 +4,18 @@
 #include "AzCore/Asset/AssetManagerBus.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/Path/Path.h"
+#include "AzCore/Module/Environment.h"
 #include "AzCore/std/containers/vector.h"
+#include "Engine/ISoundEngine.h"
+
+extern "C" {
+struct ma_engine;
+struct ma_resource_manager;
+}
 
 namespace SteamAudio::Util
 {
+
     inline auto GetAssetPath(AZ::Data::AssetId const& id) -> AZ::IO::Path
     {
         return [&id]() -> decltype(GetAssetPath(id))
@@ -81,5 +89,10 @@ namespace SteamAudio::Util
             filesize);
 
         return buffer;
+    }
+
+    static inline auto GetMaEngine() -> ma_engine*
+    {
+        return AZ::Environment::FindVariable<ma_engine*>(s_lowLevelEngineEnvName).Get();
     }
 }  // namespace SteamAudio::Util

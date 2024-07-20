@@ -85,9 +85,11 @@ namespace SteamAudio
         AssetBuilderSDK::AssetBuilderDesc builderDescriptor{};
         builderDescriptor.m_name = "SteamAudio Event Builder";
 
-        builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
-            SaEventAsset::SourceExtensionRegex,
-            AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
+        /*
+              builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
+                  SaEventAsset::SourceExtensionRegex,
+                  AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
+        */
 
         builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
             SaEventAsset::ProductExtensionRegex,

@@ -8,6 +8,10 @@ namespace SteamAudio
 {
     class SaSoundAsset;
 
+    void CopySound(ma_sound const* fromSound, ma_sound* toSound);
+    void CreateSound(AZStd::string_view soundName, ma_sound* sound);
+    auto PathToSoundName(AZStd::string_view filePath) -> AZStd::string;
+
     class SoundResourceManagerRequests
     {
     public:
@@ -100,6 +104,7 @@ namespace SteamAudio
     using SoundResourceManagerRequestBus =
         AZ::EBus<SoundResourceManagerRequests, SoundResourceManagerRequestBusTraits>;
 
+    static constexpr auto* s_maResMgrEnvName{ "ma_resource_manager" };
     class SoundResourceManager : protected SoundResourceManagerRequestBus::Handler
     {
     public:

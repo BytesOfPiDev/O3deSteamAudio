@@ -2,17 +2,23 @@
 
 #include "AudioAllocators.h"
 #include "AzCore/Asset/AssetSerializer.h"
+#include "AzCore/Console/ILogger.h"
 #include "AzCore/Memory/Memory_fwd.h"
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Serialization/EditContext.h"
 #include "AzCore/Serialization/EditContextConstants.inl"
 #include "AzCore/Serialization/SerializeContext.h"
-#include "Engine/ResourceManager.h"
+#include "Engine/ISoundEngine.h"
+#include "Engine/SoundAsset.h"
 #include "IAudioInterfacesCommonData.h"
+#include "IAudioSystem.h"
 
 #include "Engine/AudioEventAsset.h"
-#include "IAudioSystem.h"
+#include "Engine/Id.h"
+#include "Engine/ResourceManager.h"
+#include "SteamAudio/MiniAudio.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
+#include "SteamAudio/Util.h"
 
 namespace SteamAudio
 {
@@ -21,6 +27,71 @@ namespace SteamAudio
     AZ_RTTI_NO_TYPE_INFO_IMPL(SaEventAsset, AZ::Data::AssetData);
     AZ_TYPE_INFO_WITH_NAME_IMPL(SaEventAsset, "SteamAudio Event Asset", SaEventAssetTypeId);
     AZ_CLASS_ALLOCATOR_IMPL(SaEventAsset, Audio::AudioImplAllocator);
+
+    struct PlaySoundFunc
+    {
+        PlaySoundFunc()
+            : m_sound{}
+        {
+        }
+
+        PlaySoundFunc(AZ::Data::Asset<SaSoundAsset> const& asset)
+            : m_asset{ asset }
+        {
+            CreateSound(PathToSoundName(asset.GetHint()), &m_sound);
+        }
+
+        PlaySoundFunc(PlaySoundFunc const& other)
+            : m_asset{ other.m_asset }
+        {
+            CopySound(&other.m_sound, &m_sound);
+        }
+
+        PlaySoundFunc(PlaySoundFunc&& other)
+            : m_asset(AZStd::move(other.m_asset))
+        {
+            other.m_asset = {};
+            CopySound(&other.m_sound, &m_sound);
+            ma_sound_uninit(&other.m_sound);
+        }
+
+        ~PlaySoundFunc() = default;
+
+        auto operator=(PlaySoundFunc const& other) -> PlaySoundFunc&
+        {
+            m_asset = other.m_asset;
+            ma_sound_uninit(&m_sound);
+            CopySound(&other.m_sound, &m_sound);
+
+            return *this;
+        }
+        auto operator=(PlaySoundFunc&& other) -> PlaySoundFunc&
+        {
+            ma_sound_uninit(&m_sound);
+            ma_sound_uninit(&other.m_sound);
+
+            m_asset = AZStd::move(other.m_asset);
+            other.m_asset = {};
+
+            AZ::IO::PathView const soundName{ m_asset.GetHint().c_str() };
+
+            auto* maEngine{ Util::GetMaEngine() };
+            (maEngine != nullptr) &&
+                ma_sound_init_from_file(
+                    maEngine, soundName.Stem().String().c_str(), 0, nullptr, nullptr, &m_sound);
+
+            return *this;
+        }
+
+        void operator()(SaGameObjectId)
+        {
+            AZLOG(LOG_SaEvent, "PlaySoundFunc call. Asset: %s", m_asset.GetHint().c_str());
+            ma_sound_start(&m_sound);
+        }
+
+        AZ::Data::Asset<SaSoundAsset> m_asset{};
+        ma_sound m_sound{};
+    };
 
     void SaEventAsset::Reflect(AZ::ReflectContext* context)
     {
@@ -78,7 +149,12 @@ namespace SteamAudio
 
     auto SaEventAsset::CreateInstance() const -> AZStd::unique_ptr<SaEvent>
     {
-        return m_setupFunc ? m_setupFunc(m_assetId) : AZStd::make_unique<SaEvent>();
+        return m_setupFunc ? m_setupFunc(m_assetId)
+                           : AZStd::make_unique<SaEvent>(
+                                 PlaySoundFunc(m_sound),
+                                 [](SaGameObjectId) -> void
+                                 {
+                                 });
     }
 
 }  // namespace SteamAudio

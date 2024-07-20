@@ -1,30 +1,80 @@
 #include "Engine/ResourceManager.h"
 
+#include "AzCore/IO/Path/Path.h"
+#include "AzCore/Module/Environment.h"
+#include "Engine/ISoundEngine.h"
 #include "Engine/SoundAsset.h"
 
 #include "IAudioInterfacesCommonData.h"
 #include "SteamAudio/MiniAudio.h"
+#include "SteamAudio/Util.h"
 
 namespace SteamAudio
 {
     AZ_TYPE_INFO_WITH_NAME_IMPL(
         SoundResourceManager, "SoundResourceManager", "70FA87D5-FBF2-480A-AC8A-66BB91618479");
 
-    static auto GetResourceManager() -> ma_resource_manager*
+    static AZ::EnvironmentVariable<ma_resource_manager*> s_maResMgr;
+
+    void CopySound(ma_sound const* fromSound, ma_sound* toSound)
     {
-        static ma_resource_manager instance{};
-        static auto const result{ []() -> ma_result
-                                  {
-                                      ma_resource_manager_config config;
-                                      return ma_resource_manager_init(&config, &instance);
-                                  }() };
+        if (!fromSound || !toSound)
+        {
+            return;
+        }
 
-        AZ_ErrorOnce(
-            SoundResourceManager::TYPEINFO_Name(),
-            result != MA_SUCCESS,
-            "The miniaudio resource manager failed to initialize!");
+        auto* const maEngine{ Util::GetMaEngine() };
+        (maEngine != nullptr) && ma_sound_init_copy(maEngine, fromSound, 0, nullptr, toSound);
+    }
 
-        return &instance;
+    void CreateSound(AZStd::string_view soundName, ma_sound* sound)
+    {
+        auto* const maEngine{ Util::GetMaEngine() };
+        ma_sound_init_from_file(maEngine, soundName.data(), 0, nullptr, nullptr, sound);
+    }
+
+    auto PathToSoundName(AZStd::string_view filePath) -> AZStd::string
+    {
+        return AZ::IO::PathView{ filePath }.Stem().String();
+    }
+
+    SoundResourceManager::SoundResourceManager()
+    {
+        auto resMgr{ AZ::Environment::CreateVariable<ma_resource_manager*>(s_maResMgrEnvName) };
+
+        AZ_Verify(resMgr.Get() == nullptr, "A resource manager already exists!");
+        if (!resMgr.Get())
+        {
+            return;
+        }
+
+        resMgr.Get() = aznew ma_resource_manager;
+
+        SoundResourceManagerRequestBus::Handler::BusConnect();
+    }
+
+    SoundResourceManager::~SoundResourceManager()
+    {
+        SoundResourceManagerRequestBus::Handler::BusDisconnect();
+        auto* resMgr{ s_maResMgr.Get() };
+        s_maResMgr.Reset();
+
+        AZStd::ranges::for_each(
+            m_registeredNames,
+            [resMgr](AZ::Name const& soundName)
+            {
+                auto const result{ ma_resource_manager_unregister_file(
+                    resMgr, soundName.GetCStr()) };
+
+                AZ_Error(
+                    TYPEINFO_Name(),
+                    result != MA_SUCCESS,
+                    "Failed to unregister sound we registered during destruction. Error: %i.",
+                    result);
+            });
+
+        delete resMgr;
+        resMgr = nullptr;
     }
 
     void SoundResourceManager::Update()
@@ -39,7 +89,7 @@ namespace SteamAudio
                                                        AZStd::string_view soundName) -> ma_result
         {
             return ma_resource_manager_register_encoded_data(
-                GetResourceManager(),
+                AZ::Interface<ma_resource_manager>::Get(),
                 soundName.data(),
                 soundData->GetBuffer().data(),
                 soundData->GetBuffer().size());
@@ -49,7 +99,7 @@ namespace SteamAudio
             [](SaSoundAsset const* soundData, AZStd::string_view soundName)
         {
             return ma_resource_manager_register_decoded_data(
-                GetResourceManager(),
+                AZ::Interface<ma_resource_manager>::Get(),
                 soundName.data(),
                 soundData->GetBuffer().data(),
                 soundData->GetFrameCount(),
@@ -87,8 +137,8 @@ namespace SteamAudio
             return false;
         }
 
-        auto const result =
-            ma_resource_manager_unregister_data(GetResourceManager(), soundName.GetCStr());
+        auto const result = ma_resource_manager_unregister_data(
+            AZ::Interface<ma_resource_manager>::Get(), soundName.GetCStr());
 
         if (result != MA_SUCCESS)
         {
@@ -104,27 +154,4 @@ namespace SteamAudio
         return AZ::Failure("Unimplemented");
     }
 
-    SoundResourceManager::SoundResourceManager()
-    {
-        SoundResourceManagerRequestBus::Handler::BusConnect();
-    }
-
-    SoundResourceManager::~SoundResourceManager()
-    {
-        SoundResourceManagerRequestBus::Handler::BusDisconnect();
-
-        AZStd::ranges::for_each(
-            m_registeredNames,
-            [](AZ::Name const& soundName)
-            {
-                auto const result{ ma_resource_manager_unregister_file(
-                    GetResourceManager(), soundName.GetCStr()) };
-
-                AZ_Error(
-                    TYPEINFO_Name(),
-                    result != MA_SUCCESS,
-                    "Failed to unregister sound we registered during destruction. Error: %i.",
-                    result);
-            });
-    }
 }  // namespace SteamAudio

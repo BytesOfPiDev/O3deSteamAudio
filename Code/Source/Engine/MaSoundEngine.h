@@ -4,7 +4,6 @@
 
 #include "AudioAllocators.h"
 
-#include "AzCore/std/any.h"
 #include "Engine/AudioEvent.h"
 #include "Engine/AudioEventAsset.h"
 #include "Engine/AudioObject.h"
@@ -83,8 +82,6 @@ namespace SteamAudio
             AZStd::equal_to<KeyType>,
             Audio::AudioImplStdAllocator>;
         EventAssetMap<SaEventId, SaEventAsset> m_eventAssets{};
-
-        AZStd::any m_engine{};
 
         bool m_initialized{};
     };

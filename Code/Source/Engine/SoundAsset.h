@@ -155,8 +155,6 @@ namespace SteamAudio
             return m_buffer.size() / sizeof(float);
         }
 
-        void CopySoundInto(ma_sound*);
-
     private:
         Audio::AudioInputSourceType m_sourceType{ Audio::AudioInputSourceType::Unsupported };
         Audio::AudioInputSampleType m_sampleType{ Audio::AudioInputSampleType::Unsupported };

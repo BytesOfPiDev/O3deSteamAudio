@@ -61,13 +61,31 @@ namespace SteamAudio
             asset->IsLoading(true),
             "Expected asset to be in the loading or queued to load state.");
 
-        SoundResourceManagerRequestBus::Broadcast(
-            &SoundResourceManagerRequests::RegisterSound,
-            asset.GetAs<SaSoundAsset>(),
-            AZ::Name{ assetHint.Stem().String() });
+        auto registerSoundResult = [&asset, &assetHint]() -> bool
+        {
+            bool result{};
 
-        AZ::Data::AssetManagerBus::Broadcast(
-            &AZ::Data::AssetManagerBus::Events::OnAssetReady, asset);
+            SoundResourceManagerRequestBus::BroadcastResult(
+                result,
+                &SoundResourceManagerRequests::RegisterSound,
+                asset.GetAs<SaSoundAsset>(),
+                AZ::Name{ assetHint.Stem().String() });
+
+            AZ::Data::AssetManagerBus::Broadcast(
+                &AZ::Data::AssetManagerBus::Events::OnAssetReady, asset);
+            return result;
+        }();
+
+        AZ_Error(
+            TYPEINFO_Name(),
+            registerSoundResult,
+            "Failed to register sound '%s'",
+            assetHint.c_str());
+
+        if (!registerSoundResult)
+        {
+            return;
+        }
     }
 
     auto SteamAudio::SaSoundAssetHandler::CreateAsset(

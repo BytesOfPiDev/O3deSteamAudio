@@ -9,14 +9,11 @@
 #include "AssetBuilderSDK/SerializationDependencies.h"
 #include "AzCore/Debug/Trace.h"
 #include "AzCore/IO/FileIO.h"
-#include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/StringFunc/StringFunc.h"
 #include "AzCore/Utils/Utils.h"
 #include "AzCore/XML/rapidxml.h"
 #include "Engine/Configuration.h"
 #include "Engine/Parsing/AudioEventXmlParser.h"
-#include "IAudioInterfacesCommonData.h"
-#include "IAudioSystem.h"
 
 #include "Engine/AudioEventAsset.h"
 

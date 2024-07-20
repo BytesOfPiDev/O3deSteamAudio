@@ -16,6 +16,9 @@ namespace SteamAudio
 
         using StartFunc = AZStd::function<void(SaGameObjectId)>;
         using StopFunc = AZStd::function<void(SaGameObjectId)>;
+        static constexpr auto EmptyEventTask = [](SaGameObjectId) -> void
+        {
+        };
 
         SaEvent();
         /// Configures itself based on the given SaEventAsset
@@ -24,9 +27,7 @@ namespace SteamAudio
         ///
         /// @param eventAssetId The SaEventAsset to use for configuration
         SaEvent(AZ::Data::AssetId eventAssetId);
-        SaEvent(StartFunc startFunc, StopFunc stopFunc)
-            : m_startFunc{ AZStd::move(startFunc) }
-            , m_stopFunc{ AZStd::move(stopFunc) } {};
+        SaEvent(StartFunc startFunc, StopFunc stopFunc);
         ~SaEvent() = default;
 
         void Start(SaGameObjectId parentObject = {});

@@ -83,6 +83,11 @@ namespace SteamAudio
             m_setupFunc = AZStd::move(setupFunc);
         }
 
+        void LoadDependencies()
+        {
+            m_sound.BlockUntilLoadComplete();
+        }
+
     protected:
         void UpdateId();
 

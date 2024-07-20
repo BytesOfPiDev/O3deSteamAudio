@@ -29,7 +29,7 @@ namespace SteamAudio
 
     static constexpr auto DefaultAudioChannels = 2u;
     static constexpr auto DefaultSampleRate = 48000u;
-    static constexpr auto DefaultBitsPerSample = 16u;
+    static constexpr auto DefaultBitsPerSample = 32u;
     static constexpr auto DefaultFrameSize = 1024u;
 
     static constexpr auto StopAllSoundsEventName{ "StopAllSounds" };

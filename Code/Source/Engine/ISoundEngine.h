@@ -7,10 +7,12 @@
 
 extern "C" {
 struct ma_engine;
+struct ma_resource_manager;
 }
 
 namespace SteamAudio
 {
+    static constexpr auto* s_lowLevelEngineEnvName{ "ma_engine" };
 
     class ISoundEngine
     {
@@ -20,11 +22,6 @@ namespace SteamAudio
 
         ISoundEngine() = default;
         virtual ~ISoundEngine() = default;
-
-        virtual auto GetLowLevelEngine() -> ma_engine*
-        {
-            return nullptr;
-        }
 
         [[nodiscard]] virtual auto IsInitialized() const -> bool
         {

@@ -83,14 +83,6 @@ namespace SteamAudio
         }
     }
 
-    void SaSoundAsset::CopySoundInto(ma_sound* copy)
-    {
-        ma_engine* engine{};
-        SoundEngineRequestBus::BroadcastResult(engine, &ISoundEngine::GetLowLevelEngine);
-        m_sound ? ma_sound_init_copy(engine, copy, MA_SOUND_FLAG_DECODE, nullptr, nullptr)
-                : MA_NO_DATA_AVAILABLE;
-    }
-
     void SaSoundAsset::SetAudioData(Audio::AudioInputSourceType sourceType, Buffer buffer)
     {
         m_sourceType = sourceType;

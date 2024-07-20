@@ -471,7 +471,7 @@ namespace SteamAudio
 
         fileEntryInfo->sFileName = soundBankFileName;
         fileEntryInfo->pImplData = implAudioFile;
-        fileEntryInfo->nMemoryBlockAlignment = DefaultFrameSize;
+        fileEntryInfo->nMemoryBlockAlignment = 1;
         fileEntryInfo->bLocalized = false;
 
         AZLOG(
