@@ -10,6 +10,7 @@
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
+#include "Engine/ResourceManager.h"
 
 extern "C" {
 struct ma_engine;
@@ -26,11 +27,14 @@ namespace SteamAudio
         MaSoundEngine();
         ~MaSoundEngine() override;
 
-        auto IsInitialized() const -> bool override
+        [[nodiscard]] auto IsInitialized() const -> bool override
         {
             return m_initialized;
         }
 
+        /// Attempts to initialize the audio engine
+        ///
+        /// NOTE: The ma_engine environment variable is not available until this succeeds
         auto Initialize() -> EngineNullOutcome override;
 
         auto Shutdown() -> EngineNullOutcome override;
@@ -84,5 +88,7 @@ namespace SteamAudio
         EventAssetMap<SaEventId, SaEventAsset> m_eventAssets{};
 
         bool m_initialized{};
+
+        SoundResourceManager m_soundResourceMgr{};
     };
 }  // namespace SteamAudio

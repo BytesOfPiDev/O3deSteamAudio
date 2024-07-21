@@ -85,7 +85,8 @@ namespace SteamAudio
 
         void LoadDependencies()
         {
-            m_sound.BlockUntilLoadComplete();
+            m_sound.IsReady() ? m_sound.BlockUntilLoadComplete()
+                              : AZ::Data::AssetData::AssetStatus();
         }
 
     protected:

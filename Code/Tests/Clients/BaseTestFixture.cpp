@@ -1,12 +1,10 @@
 #include "Clients/BaseTestFixture.h"
 
-#include "AzCore/Asset/AssetManager.h"
 #include "AzCore/Asset/AssetManagerComponent.h"
 #include "AzCore/Component/Component.h"
 #include "AzCore/Component/ComponentApplication.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/Streamer/StreamerComponent.h"
-#include "AzCore/Interface/Interface.h"
 #include "AzCore/Jobs/JobManagerComponent.h"
 #include "AzCore/Settings/SettingsRegistry.h"
 
@@ -15,7 +13,7 @@ class BaseApp : public AZ::ComponentApplication
 public:
     auto GetRequiredSystemComponents() const -> AZ::ComponentTypeList override
     {
-        auto required{ AZ::ComponentTypeList{} };
+        auto required{ AZ::ComponentApplication::GetRequiredSystemComponents() };
         required.push_back(azrtti_typeid<AZ::StreamerComponent>());
         required.push_back(azrtti_typeid<AZ::JobManagerComponent>());
         required.push_back(azrtti_typeid<AZ::AssetManagerComponent>());
@@ -37,14 +35,12 @@ void BaseTestFixture::SetUp()
     AZ::ComponentApplication::Descriptor appDesc;
     AZ::ComponentApplication::StartupParameters startupParams;
     startupParams.m_loadSettingsRegistry = true;
-    startupParams.m_loadAssetCatalog = false;
+    startupParams.m_loadAssetCatalog = true;
 
     m_app = AZStd::make_unique<BaseApp>();
-
     m_app->RegisterComponentDescriptor(AZ::AssetManagerComponent::CreateDescriptor());
 
     m_systemEntity = m_app->Create(appDesc, startupParams);
-
     m_systemEntity->Init();
     m_systemEntity->Activate();
 

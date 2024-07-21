@@ -2,7 +2,6 @@
 
 #include "AzCore/IO/Path/Path.h"
 #include "AzCore/Module/Environment.h"
-#include "Engine/ISoundEngine.h"
 #include "Engine/SoundAsset.h"
 
 #include "IAudioInterfacesCommonData.h"
@@ -14,24 +13,7 @@ namespace SteamAudio
     AZ_TYPE_INFO_WITH_NAME_IMPL(
         SoundResourceManager, "SoundResourceManager", "70FA87D5-FBF2-480A-AC8A-66BB91618479");
 
-    static AZ::EnvironmentVariable<ma_resource_manager*> s_maResMgr;
-
-    void CopySound(ma_sound const* fromSound, ma_sound* toSound)
-    {
-        if (!fromSound || !toSound)
-        {
-            return;
-        }
-
-        auto* const maEngine{ Util::GetMaEngine() };
-        (maEngine != nullptr) && ma_sound_init_copy(maEngine, fromSound, 0, nullptr, toSound);
-    }
-
-    void CreateSound(AZStd::string_view soundName, ma_sound* sound)
-    {
-        auto* const maEngine{ Util::GetMaEngine() };
-        ma_sound_init_from_file(maEngine, soundName.data(), 0, nullptr, nullptr, sound);
-    }
+    static AZ::EnvironmentVariable<ma_resource_manager*> s_maResMgr;  // NOLINT
 
     auto PathToSoundName(AZStd::string_view filePath) -> AZStd::string
     {
@@ -39,16 +21,15 @@ namespace SteamAudio
     }
 
     SoundResourceManager::SoundResourceManager()
+        : m_maResMgr{ aznew ma_resource_manager }
     {
-        auto resMgr{ AZ::Environment::CreateVariable<ma_resource_manager*>(s_maResMgrEnvName) };
-
-        AZ_Verify(resMgr.Get() == nullptr, "A resource manager already exists!");
-        if (!resMgr.Get())
+        AZ_Verify(!s_maResMgr.IsConstructed(), "A resource manager already exists!");
+        if (s_maResMgr.IsConstructed())
         {
             return;
         }
-
-        resMgr.Get() = aznew ma_resource_manager;
+        s_maResMgr = { AZ::Environment::CreateVariable<ma_resource_manager*>(
+            s_maResMgrEnvName, m_maResMgr.get()) };
 
         SoundResourceManagerRequestBus::Handler::BusConnect();
     }
@@ -56,25 +37,25 @@ namespace SteamAudio
     SoundResourceManager::~SoundResourceManager()
     {
         SoundResourceManagerRequestBus::Handler::BusDisconnect();
-        auto* resMgr{ s_maResMgr.Get() };
-        s_maResMgr.Reset();
 
-        AZStd::ranges::for_each(
-            m_registeredNames,
-            [resMgr](AZ::Name const& soundName)
-            {
-                auto const result{ ma_resource_manager_unregister_file(
-                    resMgr, soundName.GetCStr()) };
+        if (s_maResMgr.IsConstructed())
+        {
+            AZStd::ranges::for_each(
+                m_registeredNames,
+                [](AZ::Name const& soundName)
+                {
+                    auto const result{ ma_resource_manager_unregister_file(
+                        s_maResMgr.Get(), soundName.GetCStr()) };
 
-                AZ_Error(
-                    TYPEINFO_Name(),
-                    result != MA_SUCCESS,
-                    "Failed to unregister sound we registered during destruction. Error: %i.",
-                    result);
-            });
+                    AZ_Error(
+                        TYPEINFO_Name(),
+                        result != MA_SUCCESS,
+                        "Failed to unregister sound we registered during destruction. Error: %i.",
+                        result);
+                });
 
-        delete resMgr;
-        resMgr = nullptr;
+            s_maResMgr.Reset();
+        }
     }
 
     void SoundResourceManager::Update()
@@ -149,9 +130,21 @@ namespace SteamAudio
         return result == MA_SUCCESS;
     }
 
-    auto SoundResourceManager::CreateSound(AZ::Name) -> AZ::Outcome<Sound, AZStd::string>
+    void SoundResourceManager::CopySound(ma_sound const* fromSound, ma_sound* toSound)
     {
-        return AZ::Failure("Unimplemented");
+        if (!fromSound || !toSound)
+        {
+            return;
+        }
+
+        auto* const maEngine{ Util::GetMaEngine() };
+        (maEngine != nullptr) && ma_sound_init_copy(maEngine, fromSound, 0, nullptr, toSound);
+    }
+
+    void SoundResourceManager::CreateSound(AZStd::string_view soundName, ma_sound* sound)
+    {
+        auto* const maEngine{ Util::GetMaEngine() };
+        ma_sound_init_from_file(maEngine, soundName.data(), 0, nullptr, nullptr, sound);
     }
 
 }  // namespace SteamAudio

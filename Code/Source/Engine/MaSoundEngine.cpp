@@ -385,6 +385,7 @@ namespace SteamAudio
 
     MaSoundEngine::~MaSoundEngine()
     {
+        Shutdown();
         AZ::Interface<ISoundEngine>::Unregister(this);
     }
 
@@ -643,25 +644,25 @@ namespace SteamAudio
 
     auto MaSoundEngine::InitMiniAudio() -> EngineNullOutcome
     {
-        static ma_engine_config engineConfig = ma_engine_config_init();
+        ma_engine_config engineConfig = ma_engine_config_init();
         engineConfig.channels = DefaultAudioChannels;
         engineConfig.sampleRate = DefaultSampleRate;
         engineConfig.listenerCount = 1;
         engineConfig.pResourceManager =
             AZ::Environment::FindVariable<ma_resource_manager*>(s_maResMgrEnvName).Get();
 
-        if (engineConfig.pResourceManager != nullptr)
+        if (!engineConfig.pResourceManager)
         {
-            return AZ::Failure("Failed to find ma_resource_manager");
+            return AZ::Failure("Failed to find ma_resource_manager.");
         };
 
-        if (s_maEngine.Get())
+        if (s_maEngine.IsConstructed())
         {
             return AZ::Failure("A miniaudio engine already exists! It should be nullptr.");
         }
 
-        s_maEngine = AZ::Environment::CreateVariable<ma_engine*>(s_lowLevelEngineEnvName);
-        s_maEngine.Get() = aznew ma_engine;
+        s_maEngine =
+            AZ::Environment::CreateVariable<ma_engine*>(s_lowLevelEngineEnvName, aznew ma_engine);
 
         ma_engine_init(&engineConfig, s_maEngine.Get());
 
@@ -670,12 +671,13 @@ namespace SteamAudio
 
     auto MaSoundEngine::ShutdownMiniAudio() -> EngineNullOutcome
     {
-        if (!s_maEngine.Get())
+        if (!s_maEngine.IsConstructed())
         {
             return AZ::Failure("Expected ma_engine pointer, but got nullptr");
         }
 
         ma_engine_uninit(s_maEngine.Get());
+        s_maEngine.Reset();
 
         return AZ::Success();
     }

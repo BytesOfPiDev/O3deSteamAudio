@@ -39,6 +39,13 @@ namespace SteamAudio
 
         ////////////////////////////////////////////////////////////////////////
         // Audio::Gem::EngineRequestBus interface implementation
+
+        /// Initializes audio system
+        ///
+        /// NOTE: Successfully initializsation requires that an instance of MaSoundEngine and
+        /// SoundResourceManager exists.
+        ///
+        /// @return True if initialization was successful, false otherwise
         auto Initialize() -> bool override;
         void Release() override;
         ////////////////////////////////////////////////////////////////////////
@@ -66,8 +73,8 @@ namespace SteamAudio
         SaSoundAssetHandler m_soundAssetHandler{};
         SaEventAssetHandler m_eventAssetHandler{};
         AZStd::optional<AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
+        /// Our sound engine, which uses ma_engine internally
         AZStd::optional<MaSoundEngine> m_soundEngine{ AZStd::nullopt };
-        SoundResourceManager m_soundResourceMgr{};
     };
 
 }  // namespace SteamAudio

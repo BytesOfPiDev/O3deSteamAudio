@@ -8,7 +8,6 @@
 #include "AzCore/Serialization/EditContext.h"
 #include "AzCore/Serialization/EditContextConstants.inl"
 #include "AzCore/Serialization/SerializeContext.h"
-#include "Engine/ISoundEngine.h"
 #include "Engine/SoundAsset.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystem.h"
@@ -38,20 +37,25 @@ namespace SteamAudio
         PlaySoundFunc(AZ::Data::Asset<SaSoundAsset> const& asset)
             : m_asset{ asset }
         {
-            CreateSound(PathToSoundName(asset.GetHint()), &m_sound);
+            SoundResourceManagerRequestBus::Broadcast(
+                &SoundResourceManagerRequests::CreateSound,
+                PathToSoundName(asset.GetHint()),
+                &m_sound);
         }
 
         PlaySoundFunc(PlaySoundFunc const& other)
             : m_asset{ other.m_asset }
         {
-            CopySound(&other.m_sound, &m_sound);
+            SoundResourceManagerRequestBus::Broadcast(
+                &SoundResourceManagerRequests::CopySound, &other.m_sound, &m_sound);
         }
 
         PlaySoundFunc(PlaySoundFunc&& other)
             : m_asset(AZStd::move(other.m_asset))
         {
             other.m_asset = {};
-            CopySound(&other.m_sound, &m_sound);
+            SoundResourceManagerRequestBus::Broadcast(
+                &SoundResourceManagerRequests::CopySound, &other.m_sound, &m_sound);
             ma_sound_uninit(&other.m_sound);
         }
 
@@ -61,7 +65,8 @@ namespace SteamAudio
         {
             m_asset = other.m_asset;
             ma_sound_uninit(&m_sound);
-            CopySound(&other.m_sound, &m_sound);
+            SoundResourceManagerRequestBus::Broadcast(
+                &SoundResourceManagerRequests::CopySound, &other.m_sound, &m_sound);
 
             return *this;
         }

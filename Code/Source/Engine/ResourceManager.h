@@ -2,14 +2,21 @@
 
 #include "AzCore/EBus/EBus.h"
 #include "AzCore/Name/Name.h"
-#include "Engine/Sound.h"
+#include "AzCore/std/smart_ptr/shared_ptr.h"
+
+extern "C" {
+struct ma_sound;
+struct ma_resource_manager;
+}
 
 namespace SteamAudio
 {
     class SaSoundAsset;
 
-    void CopySound(ma_sound const* fromSound, ma_sound* toSound);
-    void CreateSound(AZStd::string_view soundName, ma_sound* sound);
+    /*
+        void CopySound(ma_sound const* fromSound, ma_sound* toSound);
+        void CreateSound(AZStd::string_view soundName, ma_sound* sound);
+        */
     auto PathToSoundName(AZStd::string_view filePath) -> AZStd::string;
 
     class SoundResourceManagerRequests
@@ -23,7 +30,8 @@ namespace SteamAudio
         virtual auto RegisterSound(SaSoundAsset* soundData, AZ::Name soundName) -> bool = 0;
         virtual auto UnregisterSound(AZ::Name soundName) -> bool = 0;
 
-        virtual auto CreateSound(AZ::Name soundName) -> AZ::Outcome<Sound, AZStd::string> = 0;
+        virtual void CopySound(ma_sound const* fromSound, ma_sound* toSound) = 0;
+        virtual void CreateSound(AZStd::string_view soundName, ma_sound* sound) = 0;
     };
 
     struct SoundResourceManagerRequestBusTraits : public AZ::EBusTraits
@@ -120,10 +128,12 @@ namespace SteamAudio
         auto RegisterSound(SaSoundAsset* soundData, AZ::Name soundName) -> bool override;
         auto UnregisterSound(AZ::Name soundName) -> bool override;
 
-        auto CreateSound(AZ::Name soundName) -> AZ::Outcome<Sound, AZStd::string> override;
+        void CopySound(ma_sound const* fromSound, ma_sound* toSound) override;
+        void CreateSound(AZStd::string_view soundName, ma_sound* sound) override;
 
     private:
         AZStd::unordered_set<AZ::Name> m_registeredNames{};
+        AZStd::shared_ptr<ma_resource_manager> m_maResMgr{};
     };
 
 }  // namespace SteamAudio
