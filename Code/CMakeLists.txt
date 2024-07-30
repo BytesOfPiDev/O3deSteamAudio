@@ -246,9 +246,9 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
   o3de_add_variant_dependencies_for_gem_dependencies(GEM_NAME ${gem_name} VARIANTS Tools Builders)
 endif()
 
-# # # # # # # # # # # # # # # # # ###############################################################
+################################################################################
 # Tests
-# # # # # # # # # # # # # # # # # ###############################################################
+################################################################################
 get_property(audiosystem_gem_root GLOBAL PROPERTY "@GEMROOT:AudioSystem@")
 
 # See if globally, tests are supported

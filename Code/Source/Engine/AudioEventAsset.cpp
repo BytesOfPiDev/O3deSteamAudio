@@ -54,8 +54,19 @@ namespace SteamAudio
             : m_asset(AZStd::move(other.m_asset))
         {
             other.m_asset = {};
-            SoundResourceManagerRequestBus::Broadcast(
-                &SoundResourceManagerRequests::CopySound, &other.m_sound, &m_sound);
+
+            AZ_Warning(
+                AZ_FUNCTION_SIGNATURE,
+                !ma_data_source_get_current(&other.m_sound),
+                "Incoming sound is null.");
+
+            // Miniaudio doesn't check for null data source, so we have to check
+            if (ma_data_source_get_current(&other.m_sound))
+            {
+                SoundResourceManagerRequestBus::Broadcast(
+                    &SoundResourceManagerRequests::CopySound, &other.m_sound, &m_sound);
+            }
+
             ma_sound_uninit(&other.m_sound);
         }
 

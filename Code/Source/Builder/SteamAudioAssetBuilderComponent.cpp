@@ -75,21 +75,19 @@ namespace SteamAudio
     }
 
     void SteamAudioAssetBuilderComponent::GetRequiredServices(
-        AZ::ComponentDescriptor::DependencyArrayType& /*required*/) {};
+        AZ::ComponentDescriptor::DependencyArrayType& /*required*/){};
 
     void SteamAudioAssetBuilderComponent::GetDependentServices(
-        AZ::ComponentDescriptor::DependencyArrayType& /*dependent*/) {};
+        AZ::ComponentDescriptor::DependencyArrayType& /*dependent*/){};
 
     void SteamAudioAssetBuilderComponent::ConfigureAudioEventBuilder()
     {
         AssetBuilderSDK::AssetBuilderDesc builderDescriptor{};
         builderDescriptor.m_name = "SteamAudio Event Builder";
 
-        /*
-              builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
-                  SaEventAsset::SourceExtensionRegex,
-                  AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
-        */
+        builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
+            SaEventAsset::SourceExtensionRegex,
+            AssetBuilderSDK::AssetBuilderPattern::PatternType::Regex));
 
         builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
             SaEventAsset::ProductExtensionRegex,

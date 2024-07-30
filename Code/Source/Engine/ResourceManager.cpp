@@ -13,8 +13,6 @@ namespace SteamAudio
     AZ_TYPE_INFO_WITH_NAME_IMPL(
         SoundResourceManager, "SoundResourceManager", "70FA87D5-FBF2-480A-AC8A-66BB91618479");
 
-    static AZ::EnvironmentVariable<ma_resource_manager*> s_maResMgr;  // NOLINT
-
     auto PathToSoundName(AZStd::string_view filePath) -> AZStd::string
     {
         return AZ::IO::PathView{ filePath }.Stem().String();
@@ -23,39 +21,29 @@ namespace SteamAudio
     SoundResourceManager::SoundResourceManager()
         : m_maResMgr{ aznew ma_resource_manager }
     {
-        AZ_Verify(!s_maResMgr.IsConstructed(), "A resource manager already exists!");
-        if (s_maResMgr.IsConstructed())
-        {
-            return;
-        }
-        s_maResMgr = { AZ::Environment::CreateVariable<ma_resource_manager*>(
-            s_maResMgrEnvName, m_maResMgr.get()) };
-
         SoundResourceManagerRequestBus::Handler::BusConnect();
     }
 
     SoundResourceManager::~SoundResourceManager()
     {
+        auto const engine = AZ::Environment::FindVariable<ma_engine>(s_lowLevelEngineEnvName);
+        auto* const resMgr = ma_engine_get_resource_manager(&engine.Get());
+
         SoundResourceManagerRequestBus::Handler::BusDisconnect();
 
-        if (s_maResMgr.IsConstructed())
-        {
             AZStd::ranges::for_each(
                 m_registeredNames,
-                [](AZ::Name const& soundName)
-                {
-                    auto const result{ ma_resource_manager_unregister_file(
-                        s_maResMgr.Get(), soundName.GetCStr()) };
+            [resMgr](AZ::Name const& soundName)
+            {
+                auto const result{ ma_resource_manager_unregister_file(
+                    resMgr, soundName.GetCStr()) };
 
-                    AZ_Error(
-                        TYPEINFO_Name(),
+                AZ_Error(
+                    TYPEINFO_Name(),
                         result != MA_SUCCESS,
                         "Failed to unregister sound we registered during destruction. Error: %i.",
                         result);
                 });
-
-            s_maResMgr.Reset();
-        }
     }
 
     void SoundResourceManager::Update()

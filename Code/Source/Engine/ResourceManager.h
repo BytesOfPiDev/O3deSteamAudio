@@ -112,7 +112,6 @@ namespace SteamAudio
     using SoundResourceManagerRequestBus =
         AZ::EBus<SoundResourceManagerRequests, SoundResourceManagerRequestBusTraits>;
 
-    static constexpr auto* s_maResMgrEnvName{ "ma_resource_manager" };
     class SoundResourceManager : protected SoundResourceManagerRequestBus::Handler
     {
     public:

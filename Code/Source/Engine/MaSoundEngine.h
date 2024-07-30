@@ -89,6 +89,6 @@ namespace SteamAudio
 
         bool m_initialized{};
 
-        SoundResourceManager m_soundResourceMgr{};
+        AZStd::optional<SoundResourceManager> m_soundResourceMgr{};
     };
 }  // namespace SteamAudio

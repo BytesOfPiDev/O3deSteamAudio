@@ -648,13 +648,6 @@ namespace SteamAudio
         engineConfig.channels = DefaultAudioChannels;
         engineConfig.sampleRate = DefaultSampleRate;
         engineConfig.listenerCount = 1;
-        engineConfig.pResourceManager =
-            AZ::Environment::FindVariable<ma_resource_manager*>(s_maResMgrEnvName).Get();
-
-        if (!engineConfig.pResourceManager)
-        {
-            return AZ::Failure("Failed to find ma_resource_manager.");
-        };
 
         if (s_maEngine.IsConstructed())
         {
@@ -662,9 +655,10 @@ namespace SteamAudio
         }
 
         s_maEngine =
-            AZ::Environment::CreateVariable<ma_engine*>(s_lowLevelEngineEnvName, aznew ma_engine);
+            AZ::Environment::CreateVariable<ma_engine*>(s_lowLevelEngineEnvName, new ma_engine);
 
         ma_engine_init(&engineConfig, s_maEngine.Get());
+        m_soundResourceMgr.emplace();
 
         return AZ::Success();
     }
@@ -676,7 +670,10 @@ namespace SteamAudio
             return AZ::Failure("Expected ma_engine pointer, but got nullptr");
         }
 
+        m_soundResourceMgr = AZStd::nullopt;
         ma_engine_uninit(s_maEngine.Get());
+
+        delete s_maEngine.Get();
         s_maEngine.Reset();
 
         return AZ::Success();
