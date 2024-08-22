@@ -9,6 +9,7 @@ namespace SteamAudio
         SaEventId m_eventId;
         SaGameObjectId m_gameObjectId;
         SaId m_implTriggerId;
+        AZ::Name m_eventName;
     };
 
     struct StopEventData

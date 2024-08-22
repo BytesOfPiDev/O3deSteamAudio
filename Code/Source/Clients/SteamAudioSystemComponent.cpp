@@ -6,6 +6,7 @@
 #include "AzCore/Serialization/SerializeContext.h"
 #include "Engine/AudioEventAsset.h"
 #include "Engine/SoundAsset.h"
+#include "Engine/SrcSaEventAsset.h"
 #include "IAudioSystem.h"
 
 #include "Engine/Configuration.h"
@@ -56,6 +57,7 @@ namespace SteamAudio
     {
         SaEventAsset::Reflect(context);
         SaSoundAsset::Reflect(context);
+        EditorSaEventAsset::Reflect(context);
 
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -78,10 +80,8 @@ namespace SteamAudio
     }
 
     void SteamAudioSystemComponent::GetRequiredServices(
-        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& /*required*/)
     {
-        required.push_back(AZ_CRC_CE("AssetCatalogService"));
-        required.push_back(AZ_CRC_CE("AssetDatabaseService"));
     }
 
     void SteamAudioSystemComponent::GetDependentServices(
@@ -130,14 +130,21 @@ namespace SteamAudio
         SteamAudioRequestBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
 
-        m_soundAssetHandler.Register();
-        m_eventAssetHandler.Register();
+        m_soundAssetHandler.emplace();
+        m_soundAssetHandler->Register();
+
+        m_eventAssetHandler.emplace("SaEventSource", "Sound", SaEventAsset::ProductExtension);
+        m_eventAssetHandler->Register();
+
+        m_editorSaEventAssetHandler.emplace(
+            "SaEventSource", "Sound", EditorSaEventAsset::Extension);
+        m_editorSaEventAssetHandler->Register();
     }
 
     void SteamAudioSystemComponent::Deactivate()
     {
-        m_soundAssetHandler.Unregister();
-        m_eventAssetHandler.Unregister();
+        m_soundAssetHandler->Unregister();
+        m_eventAssetHandler->Unregister();
 
         if (m_audioSystemImpl.has_value())
         {

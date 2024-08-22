@@ -7,18 +7,21 @@
 
 #include "AssetBuilderSDK/AssetBuilderSDK.h"
 #include "AssetBuilderSDK/SerializationDependencies.h"
+#include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Debug/Trace.h"
 #include "AzCore/IO/FileIO.h"
+#include "AzCore/RTTI/RTTIMacros.h"
+#include "AzCore/Serialization/Utils.h"
 #include "AzCore/StringFunc/StringFunc.h"
 #include "AzCore/Utils/Utils.h"
 #include "AzCore/XML/rapidxml.h"
+#include "Engine/AudioEventAsset.h"
 #include "Engine/Configuration.h"
 #include "Engine/Parsing/AudioEventXmlParser.h"
+#include "Engine/SrcSaEventAsset.h"
 
-#include "Engine/AudioEventAsset.h"
-
-static constexpr auto BuildAudioEventJobKey = "Build SteamAudio Event";
-static constexpr auto CopyAudioEventJobKey = "Copy SteamAudio Event";
+static constexpr auto BuildAudioEventJobKey = "Build SteamAudio event from xml";
+static constexpr auto BuildEventFromEditorAssetKey = "Build SaEventAsset from editor asset";
 
 namespace SteamAudio
 {
@@ -28,6 +31,8 @@ namespace SteamAudio
         AssetBuilderSDK::CreateJobsRequest const& request,
         AssetBuilderSDK::CreateJobsResponse& response) const
     {
+        response.m_result = AssetBuilderSDK::CreateJobsResultCode::Failed;
+
         if (m_isShuttingDown)
         {
             response.m_result = AssetBuilderSDK::CreateJobsResultCode::ShuttingDown;
@@ -54,9 +59,9 @@ namespace SteamAudio
 
                 AssetBuilderSDK::JobDescriptor descriptor;
 
-                if (sourcePath.Match(SaEventAsset::ProductExtensionWildcard))
+                if (sourcePath.Match(EditorSaEventAsset::ExtensionWildcard))
                 {
-                    descriptor.m_jobKey = CopyAudioEventJobKey;
+                    descriptor.m_jobKey = BuildEventFromEditorAssetKey;
                 }
                 else if (sourcePath.Match(SaEventAsset::SourceExtensionWildcard))
                 {
@@ -79,7 +84,16 @@ namespace SteamAudio
 
                 response.m_createJobOutputs.emplace_back(descriptor);
             });
+        /*
+                auto const sourceDep = [&request]() -> AssetBuilderSDK::SourceFileDependency
+                {
+                    AssetBuilderSDK::SourceFileDependency result{};
+                    result.m_sourceFileDependencyUUID = request.m_sourceFileUUID;
+                    return result;
+                }();
 
+                response.m_sourceFileDependencyList.push_back(sourceDep);
+          */
         response.m_result = AssetBuilderSDK::CreateJobsResultCode::Success;
     }
 
@@ -98,13 +112,13 @@ namespace SteamAudio
 
         if (IsRequestForJob(request, BuildAudioEventJobKey))
         {
-            Build(request, response);
-            AZ_Info(AssetBuilderSDK::InfoWindow, "Build job finished.");
+            BuildFromXml(request, response);
+            AZ_Info(AssetBuilderSDK::InfoWindow, "Xml build job finished.");
         }
-        else if (IsRequestForJob(request, CopyAudioEventJobKey))
+        else if (IsRequestForJob(request, BuildEventFromEditorAssetKey))
         {
-            Copy(request, response);
-            AZ_Info(AssetBuilderSDK::InfoWindow, "Copy job finished.");
+            BuildFromAsset(request, response);
+            AZ_Info(AssetBuilderSDK::InfoWindow, "Editor asset build job finished.");
         }
         else
         {
@@ -118,7 +132,8 @@ namespace SteamAudio
             return;
         }
     }
-    void AudioEventAssetBuilderWorker::Build(
+
+    void AudioEventAssetBuilderWorker::BuildFromXml(
         AssetBuilderSDK::ProcessJobRequest const& request,
         AssetBuilderSDK::ProcessJobResponse& response) const
     {
@@ -191,8 +206,9 @@ namespace SteamAudio
         AudioEventXmlParser xmlParser{ AZStd::move(docPtr) };
         docPtr = nullptr;
 
-        auto event{ AZStd::make_unique<SaEventAsset>() };
-        xmlParser.WriteIntoAsset(event.get());
+        AZ::Data::Asset<SaEventAsset> event{};
+        event.Create(AZ::Uuid::CreateRandom());
+        xmlParser.WriteIntoAsset(event.Get());
 
         AZ::IO::Path const absProductPath =
             [absSourcePath, &request, &event]() -> decltype(absProductPath)
@@ -213,7 +229,7 @@ namespace SteamAudio
             event->GetEventId());
 
         bool const fileSaved{ AZ::Utils::SaveObjectToFile(
-            absProductPath.c_str(), AZ::DataStream::ST_JSON, event.get()) };
+            absProductPath.c_str(), AZ::DataStream::ST_JSON, event.Get()) };
 
         if (!fileSaved)
         {
@@ -227,35 +243,16 @@ namespace SteamAudio
             return;
         }
 
-        AssetBuilderSDK::JobProduct jobProduct{ absProductPath.String() };
-        jobProduct.m_outputFlags = AssetBuilderSDK::ProductOutputFlags::ProductAsset;
-        jobProduct.m_dependenciesHandled = true;
+        AssetBuilderSDK::JobProduct jobProduct{};
         jobProduct.m_productFileName = absProductPath.String();
-
-        bool const outputSuccess = AssetBuilderSDK::OutputObject(
-            event.get(),
-            absProductPath.c_str(),
-            AZ::Data::AssetType{ SaEventAsset::TYPEINFO_Uuid() },
-            SaEventAsset::AssetSubId,
-            jobProduct);
-
-        if (!outputSuccess)
-        {
-            AZ_Error(
-                AssetBuilderSDK::ErrorWindow,
-                false,
-                "Failed to output job product for '%s'\n",
-                absProductPath.Native().data());
-
-            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
-            return;
-        }
+        jobProduct.m_productAssetType = SaEventAsset::TYPEINFO_Uuid();
+        jobProduct.m_productSubID = SaEventAsset::AssetSubId;
 
         response.m_outputProducts.emplace_back(AZStd::move(jobProduct));
         response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
     }
 
-    void AudioEventAssetBuilderWorker::Copy(
+    void AudioEventAssetBuilderWorker::BuildFromAsset(
         AssetBuilderSDK::ProcessJobRequest const& request,
         AssetBuilderSDK::ProcessJobResponse& response) const
     {
@@ -268,6 +265,30 @@ namespace SteamAudio
                 request.m_fullPath.c_str());
 
             response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Cancelled;
+            return;
+        }
+
+        if (!AZ::StringFunc::Equal(request.m_jobDescription.m_jobKey, BuildEventFromEditorAssetKey))
+        {
+            AZ_Error(
+                AssetBuilderSDK::ErrorWindow,
+                false,
+                "Incorrect job key! Expected '%s', but got '%s'",
+                BuildEventFromEditorAssetKey,
+                request.m_jobDescription.m_jobKey.c_str());
+            return;
+        }
+
+        if (!AZ::StringFunc::Path::IsExtension(
+                request.m_sourceFile.c_str(), EditorSaEventAsset::Extension))
+        {
+            AZ_Error(
+                AssetBuilderSDK::ErrorWindow,
+                false,
+                "Source file '%s' has the wrong extension! Expected it to have '%s'.",
+                request.m_sourceFile.c_str(),
+                EditorSaEventAsset::Extension);
+            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
             return;
         }
 
@@ -284,78 +305,69 @@ namespace SteamAudio
             response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Cancelled;
             return;
         }
+        AZ::IO::Path const absSourcePath{ request.m_fullPath };
+        AZ_Info(AssetBuilderSDK::InfoWindow, "Full path: %s", absSourcePath.c_str());
 
-        if (!AZ::StringFunc::Path::IsExtension(
-                request.m_sourceFile.c_str(), SaEventAsset::ProductExtension))
+        AZ::IO::Path const tempPath{ request.m_tempDirPath };
+        AZ_Info(AssetBuilderSDK::InfoWindow, "Temp directory: %s", tempPath.c_str());
+
+        AZ::IO::Path const productPath = [&absSourcePath, &request]() -> decltype(productPath)
         {
-            AZ_Error(AssetBuilderSDK::ErrorWindow, false, "Source file has the wrong extension!");
-            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
-            return;
-        }
-
-        AZ::IO::Path const sourceFilename = [&request]() -> decltype(sourceFilename)
-        {
-            AZStd::string filename{};
-            AZ::StringFunc::Path::GetFileName(request.m_sourceFile.c_str(), filename);
-
-            return filename;
-        }();
-
-        AZ::IO::Path const absProductPath = [&request]() -> decltype(absProductPath)
-        {
-            AZStd::string path{};
-            AZ::StringFunc::Path::Join(
-                request.m_tempDirPath.c_str(), request.m_sourceFile.c_str(), path);
-
-            AZ_Assert(
-                AZ::StringFunc::Path::IsExtension(path.c_str(), SaEventAsset::ProductExtension),
-                "Product file has the wrong extension!");
-
+            AZ::IO::Path path{ request.m_tempDirPath };
+            path /= absSourcePath.Filename();
+            path.ReplaceExtension(SaEventAsset::ProductExtension);
             return path;
         }();
+        AZ_Info(AssetBuilderSDK::InfoWindow, "Product path: %s", productPath.c_str());
 
-        auto asset = AZStd::unique_ptr<SaEventAsset>{ AZ::Utils::LoadObjectFromFile<SaEventAsset>(
-            request.m_fullPath) };
-        if (asset == nullptr)
-        {
-            AZ_Error(AssetBuilderSDK::ErrorWindow, false, "Failed to load asset.");
+        auto const sourceAssetData = AZ::Data::Asset<EditorSaEventAsset>{
+            AZ::Uuid::CreateRandom(),
+            AZ::Utils::LoadObjectFromFile<EditorSaEventAsset>(absSourcePath.c_str()),
+            AZ::Data::AssetLoadBehavior::PreLoad
+        };
 
-            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
-            return;
-        }
-
-        auto const successfulCopy{ AZ::IO::FileIOBase::GetInstance()->Copy(
-            request.m_fullPath.c_str(), absProductPath.c_str()) };
-
-        if (!successfulCopy)
+        if (!sourceAssetData)
         {
             AZ_Error(
                 AssetBuilderSDK::ErrorWindow,
                 false,
-                "Failed to copy pre-existing product asset from [%s] to [%s].",
-                request.m_fullPath.c_str(),
-                absProductPath.c_str());
-
-            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
+                "Failed to load source asset '%s'",
+                absSourcePath.c_str());
             return;
         }
 
-        AssetBuilderSDK::JobProduct jobProduct{};
-
-        auto const outputSuccess{ AssetBuilderSDK::OutputObject(
-            asset.get(),
-            absProductPath.String(),
-            azrtti_typeid<SaEventAsset>(),
-            SaEventAsset::AssetSubId,
-            jobProduct) };
-
-        if (!outputSuccess)
+        AZ::Data::Asset<SaEventAsset> const productAssetData =
+            [&sourceAssetData]() -> decltype(productAssetData)
         {
-            AZ_Error(AssetBuilderSDK::ErrorWindow, false, "Failed to output object.");
+            auto result = AZ::Data::Asset<SaEventAsset>();
+            result.Create(AZ::Uuid::CreateRandom());
+            result->SetEventName(sourceAssetData->GetEventName());
+            result->SetSound(sourceAssetData->GetSoundToPlay());
+            return result;
+        }();
+
+        if (!AZ::Utils::SaveObjectToFile(
+                productPath.c_str(), AZ::DataStream::ST_JSON, productAssetData.Get()))
+        {
+            AZ_Error(AssetBuilderSDK::ErrorWindow, false, "Failed to save %s", productPath.c_str());
             return;
         }
 
-        response.m_outputProducts.push_back(jobProduct);
+        AssetBuilderSDK::JobProduct const eventJobProduct =
+            [&productAssetData, &productPath]() -> decltype(eventJobProduct)
+        {
+            auto result{ decltype(eventJobProduct){} };
+            AssetBuilderSDK::OutputObject<SaEventAsset>(
+                productAssetData.Get(),
+                productPath.String().c_str(),
+                AZ::Data::AssetType{ SaEventAsset::TYPEINFO_Uuid() },
+                SaEventAsset::AssetSubId,
+                result);
+
+            return result;
+        }();
+
+        response.m_outputProducts.push_back(eventJobProduct);
         response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
     }
 }  // namespace SteamAudio

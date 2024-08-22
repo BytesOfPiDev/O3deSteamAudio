@@ -2,15 +2,10 @@
 
 #include "AudioAllocators.h"
 #include "AzCore/Component/ComponentApplicationBus.h"
-#include "AzCore/IO/Path/Path_fwd.h"
 #include "AzCore/Serialization/Utils.h"
-#include "Engine/Configuration.h"
-#include "Engine/ResourceManager.h"
+
 #include "Engine/SoundAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
-#include "SteamAudio/Util.h"
-
-#include "miniaudio.h"
 
 namespace SteamAudio
 {
@@ -19,84 +14,19 @@ namespace SteamAudio
     AZ_TYPE_INFO_WITH_NAME_IMPL(
         SaSoundAssetHandler, "SaSoundAssetHandler", SaSoundAssetHandlerTypeId);
 
-    class SaResourceManager : public SaSoundAssetHandler::IResourceManagerImpl
-    {
-    public:
-        SaResourceManager();
-        ~SaResourceManager();
-
-        ma_resource_manager_config m_maResourceManagerConfig{};
-        ma_resource_manager m_maResourceManager{};
-    };
-
-    SaResourceManager::SaResourceManager()
-    {
-        m_maResourceManagerConfig = ma_resource_manager_config_init();
-        m_maResourceManagerConfig.decodedFormat = ma_format_f32;
-        m_maResourceManagerConfig.decodedChannels = DefaultAudioChannels;
-        m_maResourceManagerConfig.decodedSampleRate = DefaultSampleRate;
-
-        auto const result =
-            ma_resource_manager_init(&m_maResourceManagerConfig, &m_maResourceManager);
-
-        AZ_Error(
-            "SaResourceManager",
-            result != MA_SUCCESS,
-            "Failed to initialize miniaudio resource manager");
-    }
-
     SaSoundAssetHandler::SaSoundAssetHandler() = default;
 
     SaSoundAssetHandler::~SaSoundAssetHandler() = default;
 
-    void SteamAudio::SaSoundAssetHandler::InitAsset(
-        AZ::Data::Asset<AZ::Data::AssetData> const& asset,
-        bool /*loadStageSucceeded*/,
-        bool /*isReload*/)
-    {
-        auto const assetHint{ AZ::IO::Path{ asset.GetHint() } };
-
-        AZ_Error(
-            TYPEINFO_Name(),
-            asset->IsLoading(true),
-            "Expected asset to be in the loading or queued to load state.");
-
-        auto registerSoundResult = [&asset, &assetHint]() -> bool
-        {
-            bool result{};
-
-            SoundResourceManagerRequestBus::BroadcastResult(
-                result,
-                &SoundResourceManagerRequests::RegisterSound,
-                asset.GetAs<SaSoundAsset>(),
-                AZ::Name{ assetHint.Stem().String() });
-
-            AZ::Data::AssetManagerBus::Broadcast(
-                &AZ::Data::AssetManagerBus::Events::OnAssetReady, asset);
-            return result;
-        }();
-
-        AZ_Error(
-            TYPEINFO_Name(),
-            registerSoundResult,
-            "Failed to register sound '%s'",
-            assetHint.c_str());
-
-        if (!registerSoundResult)
-        {
-            return;
-        }
-    }
-
     auto SteamAudio::SaSoundAssetHandler::CreateAsset(
         const AZ::Data::AssetId& /*id*/, const AZ::Data::AssetType& type) -> AZ::Data::AssetPtr
     {
-        if (type == AZ::Data::AssetType{ SaSoundAssetTypeId })
+        if (type == AZ::AzTypeInfo<SaSoundAsset>::Uuid())
         {
-            return aznew SaSoundAsset{};
+            return aznew SaSoundAsset();
         }
 
-        AZ_Error("AudioEventAssetHandler", false, "The type requested is not supported.");
+        AZ_Error("SaSoundAssetHandler", false, "This handler deals only with SaSoundAsset type.");
         return nullptr;
     }
 
@@ -105,36 +35,15 @@ namespace SteamAudio
         AZStd::shared_ptr<AZ::Data::AssetDataStream> stream,
         AZ::Data::AssetFilterCB const& assetLoadFilterCB) -> AZ::Data::AssetHandler::LoadResult
     {
-        auto* assetData = asset.GetAs<SaSoundAsset>();
-        AZ_Assert(assetData, "Asset is of the wrong type.");
-        AZ_Assert(m_serializeContext, "Cached SerializeContext pointer is null!") if (assetData)
+        bool const result = AZ::Utils::LoadObjectFromStreamInPlace<SaSoundAsset>(
+            *stream, *asset.GetAs<SaSoundAsset>());
+        if (result == false)
         {
-            return AZ::Utils::LoadObjectFromStreamInPlace<SaSoundAsset>(
-                       *stream,
-                       *assetData,
-                       m_serializeContext,
-                       AZ::ObjectStream::FilterDescriptor(assetLoadFilterCB))
-                ? AZ::Data::AssetHandler::LoadResult::LoadComplete
-                : AZ::Data::AssetHandler::LoadResult::Error;
+            AZ_Error(__FUNCTION__, false, "Failed to load asset");
+            return AssetHandler::LoadResult::Error;
         }
 
-        return AZ::Data::AssetHandler::LoadResult::Error;
-    }
-
-    auto SaSoundAssetHandler::SaveAssetData(
-        const AZ::Data::Asset<AZ::Data::AssetData>& asset, AZ::IO::GenericStream* stream) -> bool
-    {
-        auto* assetData = asset.GetAs<SaSoundAsset>();
-        AZ_Assert(assetData, "Asset is of the wrong type.");
-        AZ_Assert(m_serializeContext, "Cached SerializeContext pointer is null!");
-
-        if (assetData && m_serializeContext)
-        {
-            return AZ::Utils::SaveObjectToStream<SaSoundAsset>(
-                *stream, AZ::ObjectStream::ST_JSON, assetData, m_serializeContext);
-        }
-
-        return false;
+        return AssetHandler::LoadResult::LoadComplete;
     }
 
     void SaSoundAssetHandler::DestroyAsset(AZ::Data::AssetPtr ptr)
@@ -144,7 +53,7 @@ namespace SteamAudio
 
     void SaSoundAssetHandler::GetHandledAssetTypes(AZStd::vector<AZ::Data::AssetType>& assetTypes)
     {
-        assetTypes.push_back(AZ::Data::AssetType{ SaSoundAssetTypeId });
+        assetTypes.push_back(AZ::AzTypeInfo<SaSoundAsset>::Uuid());
     }
 
     auto SaSoundAssetHandler::GetAssetType() const -> AZ::Data::AssetType
@@ -159,11 +68,11 @@ namespace SteamAudio
 
     auto SaSoundAssetHandler::GetAssetTypeDisplayName() const -> char const*
     {
-        return "SteamAudio Sound";
+        return "Sound Asset (SteamAudio Gem)";
     }
     auto SaSoundAssetHandler::GetBrowserIcon() const -> char const*
     {
-        return {};
+        return "Icons/Components/ColliderMesh.svg";
     }
 
     auto SaSoundAssetHandler::GetGroup() const -> char const*
@@ -203,12 +112,6 @@ namespace SteamAudio
         {
             AZ::Data::AssetManager::Instance().UnregisterHandler(this);
         }
-    }
-
-    auto SaSoundAssetHandler::CanHandleAsset(AZ::Data::AssetId const& id) const -> bool
-    {
-        AZ::IO::Path const assetPath = Util::GetAssetPath(id);
-        return assetPath.Match(SaSoundAsset::ProductExtensionWildcard);
     }
 
     void SaSoundAssetHandler::OnSoundManagerReady() const

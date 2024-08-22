@@ -3,9 +3,13 @@
 
 #include "AzCore/base.h"
 #include "AzToolsFramework/API/ToolsApplicationAPI.h"
+#include "Builder/AudioControlBuilderWorker.h"
+#include "Builder/AudioEventAssetBuilderWorker.h"
+#include "Builder/SoundAssetBuilderWorker.h"
 #include "IAudioSystemEditor.h"
 
 #include "Clients/SteamAudioSystemComponent.h"
+#include "Engine/SrcSaEventAsset.h"
 
 namespace SteamAudio
 {
@@ -24,7 +28,7 @@ namespace SteamAudio
         static void Reflect(AZ::ReflectContext* context);
 
         SteamAudioEditorSystemComponent();
-        ~SteamAudioEditorSystemComponent();
+        ~SteamAudioEditorSystemComponent() override;
 
     protected:
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
@@ -46,7 +50,16 @@ namespace SteamAudio
         auto GetEditorImplPlugin() -> AudioControls::IAudioSystemEditor* override;
         ////////////////////////////////////////////////////////////////////////
 
+    protected:
+        void ConfigureAudioControlBuilder();
+        void ConfigureAudioEventBuilder();
+        void ConfigureSaSoundBuilder();
+
     private:
-        AZStd::unique_ptr<AudioControls::IAudioSystemEditor> m_editorImplPlugin;
+        AZStd::unique_ptr<AudioControls::IAudioSystemEditor> m_editorImplPlugin{};
+        AudioEventAssetBuilderWorker m_eventBuilder;
+        AudioControlBuilderWorker m_audioControlBuilder;
+        SaSoundAssetBuilderWorker m_soundAssetBuilder;
+        AZStd::vector<AZStd::unique_ptr<AZ::Data::AssetHandler>> m_assetHandlers;
     };
-} // namespace SteamAudio
+}  // namespace SteamAudio

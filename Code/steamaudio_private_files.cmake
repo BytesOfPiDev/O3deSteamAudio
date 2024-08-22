@@ -16,8 +16,6 @@ set(FILES
     Source/Engine/AudioEvent.h
     Source/Engine/AudioEventAsset.cpp
     Source/Engine/AudioEventAsset.h
-    Source/Engine/AudioEventAssetHandler.cpp
-    Source/Engine/AudioEventAssetHandler.h
     Source/Engine/AudioEventBus.h
     Source/Engine/AudioSource.cpp
     Source/Engine/AudioSource.h
@@ -34,8 +32,6 @@ set(FILES
     Source/Engine/MaSoundEngine.h
     Source/Engine/ISoundEngine.h
     Source/Engine/Parameters.h
-    Source/Engine/ResourceManager.cpp
-    Source/Engine/ResourceManager.h
     Source/Engine/Sound.cpp
     Source/Engine/Sound.h
     Source/Engine/SoundAsset.cpp
@@ -44,6 +40,8 @@ set(FILES
     Source/Engine/SoundAssetHandler.h
     Source/Engine/SoundBankAssetHandler.cpp
     Source/Engine/SoundBankAssetHandler.h
+    Source/Engine/SrcSaEventAsset.cpp
+    Source/Engine/SrcSaEventAsset.h
     Source/Engine/wav.c
 
     Source/Engine/Parsing/AudioEventXmlParser.cpp

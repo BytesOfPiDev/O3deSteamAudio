@@ -13,6 +13,7 @@ struct ma_resource_manager;
 namespace SteamAudio
 {
     static constexpr auto* s_lowLevelEngineEnvName{ "ma_engine" };
+    static constexpr auto* s_maResMgrEnvName{ "ma_resource_manager" };
 
     class ISoundEngine
     {

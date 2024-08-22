@@ -280,6 +280,7 @@ namespace SteamAudio
             auto result{ StartEventData{} };
             result.m_gameObjectId = objectId;
             result.m_eventId = implTriggerData->GetImplEventId();
+            result.m_eventName = implTriggerData->GetEventName();
             return result;
         }();
 

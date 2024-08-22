@@ -6,5 +6,5 @@
 class MockAudioEventAsset : public SteamAudio::SaEventAsset
 {
 public:
-    MOCK_CONST_METHOD0(GetEventName, SteamAudio::SaEventAsset::AudioEventName(void));
+    MOCK_CONST_METHOD0(GetEventName, SteamAudio::AudioEventName(void));
 };

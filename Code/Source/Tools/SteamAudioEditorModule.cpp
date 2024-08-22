@@ -1,6 +1,5 @@
 #include <SteamAudioModuleInterface.h>
 
-#include "Builder/SteamAudioAssetBuilderComponent.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 #include "SteamAudioEditorSystemComponent.h"
 #include "Tools/EditorSteamAudioLevelComponent.h"
@@ -23,7 +22,6 @@ namespace SteamAudio
             m_descriptors.insert(
                 m_descriptors.end(),
                 { SteamAudioEditorSystemComponent::CreateDescriptor(),
-                  SteamAudioAssetBuilderComponent::CreateDescriptor(),
                   EditorSteamAudioLevelComponent::CreateDescriptor() });
         }
 
@@ -34,11 +32,10 @@ namespace SteamAudio
         [[nodiscard]] auto GetRequiredSystemComponents() const -> AZ::ComponentTypeList override
         {
             return AZ::ComponentTypeList{ azrtti_typeid<SteamAudioEditorSystemComponent>(),
-                                          azrtti_typeid<SteamAudioAssetBuilderComponent>(),
                                           azrtti_typeid<EditorSteamAudioLevelComponent>() };
         };
     };
-} // namespace SteamAudio
+}  // namespace SteamAudio
 
 #if defined(O3DE_GEM_NAME)
 AZ_DECLARE_MODULE_CLASS(AZ_JOIN(Gem_, O3DE_GEM_NAME, _Editor), SteamAudio::SteamAudioEditorModule)

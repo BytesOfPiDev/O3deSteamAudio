@@ -4,13 +4,13 @@
 
 #include "AudioAllocators.h"
 
+#include "AzCore/std/any.h"
 #include "Engine/AudioEvent.h"
 #include "Engine/AudioEventAsset.h"
 #include "Engine/AudioObject.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
-#include "Engine/ResourceManager.h"
 
 extern "C" {
 struct ma_engine;
@@ -87,8 +87,7 @@ namespace SteamAudio
             Audio::AudioImplStdAllocator>;
         EventAssetMap<SaEventId, SaEventAsset> m_eventAssets{};
 
+        AZStd::any m_maEngine{};
         bool m_initialized{};
-
-        AZStd::optional<SoundResourceManager> m_soundResourceMgr{};
     };
 }  // namespace SteamAudio

@@ -93,7 +93,17 @@ namespace SteamAudio::Util
 
     static inline auto GetMaEngine() -> ma_engine*
     {
-        auto const engineVar{ AZ::Environment::FindVariable<ma_engine*>(s_lowLevelEngineEnvName) };
-        return engineVar.IsConstructed() ? engineVar.Get() : nullptr;
+        auto const maEngine{ AZ::Environment::FindVariable<ma_engine*>(s_lowLevelEngineEnvName) };
+
+        if (!maEngine.IsConstructed())
+        {
+            AZ_Error(AZ_FUNCTION_SIGNATURE, false, "ma_engine is not available!");
+            return nullptr;
+        }
+
+        AZ_Error("GetMaEngine", maEngine.Get(), "Found nullptr for ma_engine!");
+
+        return maEngine.Get();
     }
+
 }  // namespace SteamAudio::Util

@@ -25,4 +25,6 @@ namespace SteamAudio
     constexpr auto SaSoundAssetTypeId{ "C94B5C4C-EBCA-4203-9FE4-EFCFCE707D28" };
     constexpr auto SaSoundAssetHandlerTypeId{ "C03D4F81-5249-4097-B38D-41C6AFAC75F7" };
     constexpr auto SaEventAssetHandlerTypeId{ "{AD28F187-2EA4-465E-BB3E-6854696CB135}" };
+
+    constexpr auto EditorSaEventAssetHandlerTypeId{ "38EC9104-46C1-454E-8FC0-B07F6C89DCF5" };
 }  // namespace SteamAudio

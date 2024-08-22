@@ -65,6 +65,11 @@ namespace SteamAudio
             return m_implEventId;
         }
 
+        [[nodiscard]] auto GetEventName() const -> AZ::Name
+        {
+            return m_triggerName;
+        }
+
     private:
         AZ::Name m_triggerName{};
         SaEventId m_implEventId{};

@@ -2,12 +2,11 @@
 
 #include "AudioAllocators.h"
 #include "AzCore/Asset/AssetCommon.h"
+#include "AzCore/Asset/AssetSerializer.h"
 #include "AzCore/Serialization/EditContext.h"
 #include "AzCore/Serialization/SerializeContext.h"
-#include "IAudioInterfacesCommonData.h"
 
 #include "Engine/ISoundEngine.h"
-#include "Engine/ResourceManager.h"
 #include "SteamAudio/MiniAudio.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
@@ -29,9 +28,10 @@ namespace SteamAudio
     {
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serialize->RegisterGenericType<BufferView>();
-            serialize->Class<SaSoundAsset, AZ::Data::AssetData>()->Version(0)->Field(
-                "Buffer", &SaSoundAsset::m_buffer);
+            serialize->Class<SaSoundAsset, AZ::Data::AssetData>()->Version(1)->Field(
+                "Buffer", &SaSoundAsset::m_data);
+
+            serialize->RegisterGenericType<AZ::Data::Asset<SaSoundAsset>>();
 
             if (AZ::EditContext* edit = serialize->GetEditContext())
             {
@@ -48,84 +48,9 @@ namespace SteamAudio
         SoundEngineNotificationBus::Handler::BusConnect();
     };
 
-    SaSoundAsset::SaSoundAsset(
-        Audio::AudioInputSourceType sourceType,
-        Audio::AudioInputSampleType sampleType,
-        AZ::u32 channelCount,
-        AZ::u32 sampleRate,
-        Buffer buffer)
-        : SteamAudio::SaSoundAsset()
-    {
-        SetAudioData(sourceType, sampleType, channelCount, sampleRate, AZStd::move(buffer));
-    }
-
-    SaSoundAsset::SaSoundAsset(
-        Audio::AudioInputSourceType sourceType,
-        Audio::AudioInputSampleType sampleType,
-        AZ::u32 channelCount,
-        AZ::u32 sampleRate,
-        BufferView buffer)
-        : SteamAudio::SaSoundAsset()
-    {
-        SetAudioData(
-            sourceType, sampleType, channelCount, sampleRate, Buffer(buffer.begin(), buffer.end()));
-    }
-
     SaSoundAsset::~SaSoundAsset()
     {
         SoundEngineNotificationBus::Handler::BusDisconnect();
-
-        if (m_sound)
-        {
-            auto* sound{ static_cast<Internal::Sound*>(m_sound.get()) };
-            ma_sound_uninit(&sound->m_data);
-            m_sound = nullptr;
-        }
     }
 
-    void SaSoundAsset::SetAudioData(Audio::AudioInputSourceType sourceType, Buffer buffer)
-    {
-        m_sourceType = sourceType;
-        m_sampleType = Audio::AudioInputSampleType::Unsupported;
-        m_buffer.swap(buffer);
-        m_sampleRate = 0;
-        m_channels = 0;
-    }
-
-    void SaSoundAsset::SetAudioData(Audio::AudioInputSourceType sourceType, BufferView buffer)
-    {
-        m_sourceType = sourceType;
-        m_sampleType = Audio::AudioInputSampleType::Unsupported;
-        m_buffer = { buffer.begin(), buffer.end() };
-        m_sampleRate = 0;
-        m_channels = 0;
-    }
-
-    void SaSoundAsset::SetAudioData(
-        Audio::AudioInputSourceType sourceType,
-        Audio::AudioInputSampleType sampleType,
-        AZ::u32 channelCount,
-        AZ::u32 sampleRate,
-        Buffer buffer)
-    {
-        m_sourceType = sourceType;
-        m_sampleType = sampleType;
-        m_buffer.swap(buffer);
-        m_sampleRate = sampleRate;
-        m_channels = channelCount;
-    }
-
-    void SaSoundAsset::SetAudioData(
-        Audio::AudioInputSourceType sourceType,
-        Audio::AudioInputSampleType sampleType,
-        AZ::u32 channelCount,
-        AZ::u32 sampleRate,
-        BufferView buffer)
-    {
-        m_sourceType = sourceType;
-        m_sampleType = sampleType;
-        m_buffer = { buffer.begin(), buffer.end() };
-        m_sampleRate = sampleRate;
-        m_channels = channelCount;
-    }
 }  // namespace SteamAudio

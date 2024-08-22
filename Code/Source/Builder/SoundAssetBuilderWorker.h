@@ -26,23 +26,6 @@ namespace SteamAudio
             m_isShuttingDown = true;
         }
 
-    protected:
-        void CopyExistingAsset(
-            AssetBuilderSDK::ProcessJobRequest const& request,
-            AssetBuilderSDK::ProcessJobResponse& response) const;
-
-        void BuildRawSource(
-            AssetBuilderSDK::ProcessJobRequest const& request,
-            AssetBuilderSDK::ProcessJobResponse& response) const;
-
-        void BuildWavSource(
-            AssetBuilderSDK::ProcessJobRequest const& request,
-            AssetBuilderSDK::ProcessJobResponse& response) const;
-
-        void BuildWavSourceDecoded(
-            AssetBuilderSDK::ProcessJobRequest const& request,
-            AssetBuilderSDK::ProcessJobResponse& response) const;
-
     private:
         AZStd::atomic_bool m_isShuttingDown{};
     };

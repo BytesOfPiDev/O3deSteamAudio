@@ -2,7 +2,7 @@
 
 #include "AssetBuilderSDK/AssetBuilderBusses.h"
 
-namespace  SteamAudio
+namespace SteamAudio
 {
     class AudioEventAssetBuilderWorker : public AssetBuilderSDK::AssetBuilderCommandBus::Handler
     {
@@ -23,14 +23,14 @@ namespace  SteamAudio
         }
 
     protected:
-        void Copy(
+        void BuildFromAsset(
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;
-        void Build(
+        void BuildFromXml(
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;
 
     private:
         AZStd::atomic_bool m_isShuttingDown{};
     };
-} // namespace BopAudio
+}  // namespace SteamAudio

@@ -7,6 +7,7 @@
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/Path/Path.h"
 
+#include "AzCore/StringFunc/StringFunc.h"
 #include "Engine/Configuration.h"
 #include "IAudioSystemControl.h"
 #include "IAudioSystemEditor.h"
@@ -63,7 +64,7 @@ namespace SteamAudio
             return;
         }
 
-        auto const resolvedPath = fileIo->ResolvePath(folderPath);
+       auto const resolvedPath = fileIo->ResolvePath(folderPath);
         auto const foundFiles = Audio::FindFilesInPath(resolvedPath->c_str(), "*");
         for (auto const& filePath : foundFiles)
         {
@@ -115,8 +116,8 @@ namespace SteamAudio
             AudioStrings::NameAttribute);
 
         AZStd::string_view const xmlTag(xmlNode->name());
-        bool const isSwitchTag{ xmlTag == AudioStrings::SwitchGroupTag };
-        bool const isStateTag{ xmlTag == AudioStrings::StateGroupTag };
+        bool const isSwitchTag{ AZ::StringFunc::Equal(xmlTag , AudioStrings::SwitchGroupTag) };
+        bool const isStateTag{ AZ::StringFunc::Equal(xmlTag , AudioStrings::StateGroupTag) };
 
         if (isSwitchTag || isStateTag)
         {
@@ -177,7 +178,7 @@ namespace SteamAudio
 
         AZ_Info("SteamAudioLoader", "Checking soundbanks in '%s'...", searchPath.c_str());
 
-        auto foundFiles = Audio::FindFilesInPath(searchPath.Native(), "*");
+        auto const foundFiles = Audio::FindFilesInPath(searchPath.Native(), "*");
 
         AZ_Info("SteamAudioLoader", "Found '%i' files.", foundFiles.size());
 
@@ -226,7 +227,7 @@ namespace SteamAudio
         AZStd::string_view const controlNameAttribute)
     {
         AZStd::string_view xmlTag(xmlNode->name());
-        if (xmlTag == controlTag)
+        if (AZ::StringFunc::Equal(xmlTag ,controlTag))
         {
             if (auto nameAttr = xmlNode->first_attribute(controlNameAttribute.data()))
             {

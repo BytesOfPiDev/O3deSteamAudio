@@ -4,9 +4,11 @@
 #include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Asset/AssetManager.h"
 #include "AzCore/Asset/AssetManagerBus.h"
+#include "AzCore/Console/ILogger.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/Interface/Interface.h"
 #include "AzCore/Module/Environment.h"
+#include "AzCore/PlatformDef.h"
 #include "AzCore/std/concepts/concepts_constructible.h"
 
 #include "Engine/AudioEvent.h"
@@ -15,7 +17,6 @@
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
-#include "Engine/ResourceManager.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystem.h"
 #include "phonon.h"
@@ -465,7 +466,6 @@ namespace SteamAudio
             };
 
             muteAllEventAsset->ChangeSetupFunc(EmptySetupFunc);
-
             m_eventAssets.insert(
                 { Audio::AudioStringToID<SaEventId>(Events::MuteAllEventName), muteAllEventAsset });
         }();
@@ -478,7 +478,6 @@ namespace SteamAudio
             };
 
             unmuteAllEventAsset->ChangeSetupFunc(EmptySetupFunc);
-
             m_eventAssets.insert({ Audio::AudioStringToID<SaEventId>(Events::UnmuteAllEventName),
                                    unmuteAllEventAsset });
         }();
@@ -490,6 +489,7 @@ namespace SteamAudio
                     AZ::Data::AssetId{ GetFocusAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
             };
 
+            getFocusEventAsset->ChangeSetupFunc(EmptySetupFunc);
             m_eventAssets.insert({ Audio::AudioStringToID<SaEventId>(Events::GetFocusEventName),
                                    getFocusEventAsset });
         }();
@@ -501,6 +501,7 @@ namespace SteamAudio
                     AZ::Data::AssetId{ LoseFocusAssetId }, AZ::Data::AssetLoadBehavior::NoLoad)
             };
 
+            loseFocusEventAsset->ChangeSetupFunc(EmptySetupFunc);
             m_eventAssets.insert({ Audio::AudioStringToID<SaEventId>(Events::LoseFocusEventName),
                                    loseFocusEventAsset });
         }();
@@ -547,22 +548,34 @@ namespace SteamAudio
 
                 if (asset.Get() == nullptr)
                 {
+                    AZ_Error(TYPEINFO_Name(), false, "Event Asset '%s' is nullptr");
+                    continue;
+                }
+                else if (!asset.GetId().IsValid())
+                {
+                    AZ_Error(
+                        TYPEINFO_Name(),
+                        false,
+                        "Event Asset '%s' loaded with invalid ID",
+                        path.c_str());
                     continue;
                 }
 
+                asset.QueueLoad();
                 asset.BlockUntilLoadComplete();
 
                 if (!asset.IsReady())
                 {
-                    AZ_Warning(TYPEINFO_Name(), false, "Failed to load %s", path.c_str());
+                    AZ_Warning(
+                        TYPEINFO_Name(), false, "Event Asset '%s' failed to load", path.c_str());
                     continue;
                 }
 
-                AZ_Info(
-                    TYPEINFO_Name(),
-                    "Adding audio event [Name: %s | Id: %lu",
+                AZLOG(
+                    LOG_MaSoundEngine,
+                    "Adding audio event [Name: %s | Id: %llu",
                     asset->GetEventName().c_str(),
-                    asset->GetEventId());
+                    static_cast<AZ::u64>(asset->GetEventId()));
 
                 m_eventAssets.insert({ asset->GetEventId(), asset });
 
@@ -605,6 +618,12 @@ namespace SteamAudio
             return AZ::Failure(AZStd::string::format(
                 "Report event failed [%s]", findEventOutcome.GetError().c_str()));
         }
+
+        AZLOG(
+            LOG_MaSoundEngine,
+            "Report event succeeded. Name: %s | Id: %llu",
+            startEventData.m_eventName.GetCStr(),
+            static_cast<AZ::u64>(startEventData.m_eventId));
 
         auto const eventAsset{ findEventOutcome.TakeValue() };
 
@@ -654,26 +673,33 @@ namespace SteamAudio
             return AZ::Failure("A miniaudio engine already exists! It should be nullptr.");
         }
 
-        s_maEngine =
-            AZ::Environment::CreateVariable<ma_engine*>(s_lowLevelEngineEnvName, new ma_engine);
+        m_maEngine = AZStd::make_any<ma_engine>();
 
-        ma_engine_init(&engineConfig, s_maEngine.Get());
-        m_soundResourceMgr.emplace();
+        s_maEngine = AZ::Environment::CreateVariable<ma_engine*>(
+            s_lowLevelEngineEnvName, &AZStd::any_cast<ma_engine&>(m_maEngine));
+
+        auto const initResult{ ma_engine_init(&engineConfig, s_maEngine.Get()) };
+        if (initResult != MA_SUCCESS)
+        {
+            AZ_Error(
+                "MaSoundEngine", false, "Failed to initialize ma_engine! Error: %zu", initResult);
+            return AZ::Failure("Failed to init ma_engine");
+        }
 
         return AZ::Success();
     }
 
     auto MaSoundEngine::ShutdownMiniAudio() -> EngineNullOutcome
     {
+        AZLOG_INFO("Shutting down MiniAudio");
+
         if (!s_maEngine.IsConstructed())
         {
-            return AZ::Failure("Expected ma_engine pointer, but got nullptr");
+            return AZ::Failure("Environment variable for ma_engine is null");
         }
 
-        m_soundResourceMgr = AZStd::nullopt;
         ma_engine_uninit(s_maEngine.Get());
 
-        delete s_maEngine.Get();
         s_maEngine.Reset();
 
         return AZ::Success();

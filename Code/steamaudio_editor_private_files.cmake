@@ -11,8 +11,6 @@ set(FILES
     Source/Builder/SoundAssetBuilderWorker.h
     Source/Builder/SoundBankAssetBuilderWorker.cpp
     Source/Builder/SoundBankAssetBuilderWorker.h
-    Source/Builder/SteamAudioAssetBuilderComponent.cpp
-    Source/Builder/SteamAudioAssetBuilderComponent.h
 
     Source/Tools/AudioSystemControl_steamaudio.cpp
     Source/Tools/AudioSystemControl_steamaudio.h

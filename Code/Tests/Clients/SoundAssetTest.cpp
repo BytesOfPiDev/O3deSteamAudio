@@ -4,9 +4,7 @@
 #include "AzCore/IO/FileIO.h"
 
 #include "Clients/BaseTestFixture.h"
-#include "Engine/Configuration.h"
 #include "Engine/SoundAsset.h"
-#include "IAudioInterfacesCommonData.h"
 #include "SteamAudio/dr_wav.h"
 
 static constexpr auto TestFile1Path{ "@assets@/01_welcome_01.wav" };
@@ -25,22 +23,6 @@ struct WavFileTestFixture : BaseTestFixture
 TEST_F(SoundAssetTests, SANITY_CHECK)
 {
     SteamAudio::SaSoundAsset asset{};
-}
-
-TEST_F(SoundAssetTests, Construct_WithValidBuffer_ReturnsCorrectFrameCount)
-{
-    static auto const BufferSizeInBytes{ 8096 };
-    static auto const FrameCount{ BufferSizeInBytes / sizeof(float) };
-    static constexpr auto const TestBuffer{ AZStd::array<AZ::u8, BufferSizeInBytes>() };
-
-    SteamAudio::SaSoundAsset asset{ Audio::AudioInputSourceType::PcmFile,
-                                    Audio::AudioInputSampleType::Float,
-                                    SteamAudio::DefaultAudioChannels,
-                                    SteamAudio::DefaultSampleRate,
-                                    TestBuffer };
-
-    EXPECT_EQ(asset.GetBuffer().size(), TestBuffer.size());
-    EXPECT_EQ(asset.GetFrameCount(), FrameCount);
 }
 
 TEST_F(WavFileTestFixture, WavSourceFile_Decode_ReturnsCorrectSettings)

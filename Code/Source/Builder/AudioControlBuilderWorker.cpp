@@ -2,11 +2,12 @@
 
 #include "ATLCommon.h"
 #include "AssetBuilderSDK/AssetBuilderSDK.h"
+#include "AssetBuilderSDK/SerializationDependencies.h"
+#include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/SystemFile.h"
 #include "AzCore/Memory/SystemAllocator.h"
 #include "AzCore/StringFunc/StringFunc.h"
 #include "AzFramework/IO/LocalFileIO.h"
-#include "AssetBuilderSDK/SerializationDependencies.h"
 
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Configuration.h"
@@ -255,12 +256,22 @@ namespace SteamAudio
                                     XmlTags::NameAttribute));
                             }
 
+                            AZ::IO::Path const banksPath{ AZ::IO::FileIOBase::GetInstance()
+                                                              ->ResolvePath(BanksAlias)
+                                                              .value_or("") };
+
+                            if (banksPath.empty())
+                            {
+                                return AZ::Failure(AZStd::string::format(
+                                    "Unable to resolve the soundbank path alias from '%s'",
+                                    BanksAlias));
+                            }
+
                             // Prepend the bank name with the relative path to
                             // the BopAudio sounds folder to get relative path
                             // to the bank from the @products@ alias and push
                             // that into the list of banks referenced.
-                            AZStd::string soundsPrefix = BanksAlias;
-                            banksReferenced.emplace_back(soundsPrefix + bankNameAttribute->value());
+                            banksReferenced.emplace_back(banksPath / bankNameAttribute->value());
 
                             bopFileNode = bopFileNode->next_sibling(XmlTags::SteamAudioFileTag);
                         }
@@ -272,7 +283,7 @@ namespace SteamAudio
 
                 return AZ::Success();
             }
-        } // namespace Legacy
+        }  // namespace Legacy
 
         auto BuildAtlEventList(
             const AZ::rapidxml::xml_node<char>* triggersNode,
@@ -347,8 +358,20 @@ namespace SteamAudio
                             bopAudioFileNode->first_attribute(XmlTags::NameAttribute);
                         if (libraryNameAttr)
                         {
-                            AZStd::string soundsPrefix = BanksAlias;
-                            banksReferenced.emplace_back(soundsPrefix + libraryNameAttr->value());
+                            AZ::IO::Path soundsPrefix = AZ::IO::FileIOBase::GetInstance()
+                                                            ->ResolvePath(BanksAlias)
+                                                            .value_or("")
+                                                            .c_str();
+
+                            if (soundsPrefix.empty())
+                            {
+                                return AZ::Failure(AZStd::string::format(
+                                    "Unable to resolve the alias '%s'. Bank reference will not be "
+                                    "added.",
+                                    BanksAlias));
+                            }
+
+                            banksReferenced.emplace_back(soundsPrefix / libraryNameAttr->value());
                         }
                         else
                         {
@@ -458,7 +481,7 @@ namespace SteamAudio
             return GetEventsFromBankMetadata(bankMetadataDoc, eventNames);
         }
 
-    } // namespace Internal
+    }  // namespace Internal
 
     void AudioControlBuilderWorker::CreateJobs(
         AssetBuilderSDK::CreateJobsRequest const& request,
@@ -520,7 +543,9 @@ namespace SteamAudio
             response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
             return;
         }
-        
+
+        jobProduct.m_dependenciesHandled = true;
+
         response.m_outputProducts.push_back(jobProduct);
         response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
     }
@@ -710,4 +735,4 @@ namespace SteamAudio
         }
     }
 
-} // namespace SteamAudio
+}  // namespace SteamAudio
