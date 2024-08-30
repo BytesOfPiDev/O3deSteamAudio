@@ -4,6 +4,27 @@
 #include "Engine/Id.h"
 namespace SteamAudio
 {
+    class AudioEventRequests
+    {
+    public:
+        AZ_DISABLE_COPY_MOVE(AudioEventRequests);
+
+        AudioEventRequests() = default;
+        virtual ~AudioEventRequests() = default;
+
+        virtual void StartEventById(SaEventId event) = 0;
+        virtual void StopEventById(SaEventId event) = 0;
+    };
+
+    struct AudioEventRequestBusTraits : AZ::EBusTraits
+    {
+        static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
+        static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::ById;
+        using BusIdType = SaGameObjectId;
+    };
+
+    using SaEventRequestBus = AZ::EBus<AudioEventRequests, AudioEventRequestBusTraits>;
+
     class AudioEventNotifications
     {
     public:

@@ -1,8 +1,8 @@
 #include "Engine/Parsing/AudioEventXmlParser.h"
 
 #include "AzCore/StringFunc/StringFunc.h"
-#include "Engine/AudioEventAsset.h"
 #include "Engine/Common_steamaudio.h"
+#include "Engine/SaEventAsset.h"
 
 namespace SteamAudio
 {

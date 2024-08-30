@@ -20,7 +20,4 @@ set(FILES
     Source/Tools/EditorSteamAudioLevelComponent.h
     Source/Tools/SteamAudioLoader.cpp
     Source/Tools/SteamAudioLoader.h
-
-    Source/Engine/wav.c
-
 )

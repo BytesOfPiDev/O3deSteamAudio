@@ -4,9 +4,9 @@
 #include "AzCore/Console/IConsoleTypes.h"
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/Serialization/SerializeContext.h"
-#include "Engine/AudioEventAsset.h"
-#include "Engine/SoundAsset.h"
-#include "Engine/SrcSaEventAsset.h"
+#include "Engine/SaEventAsset.h"
+#include "Engine/SaSoundAsset.h"
+#include "Engine/Tasks/Task.h"
 #include "IAudioSystem.h"
 
 #include "Engine/Configuration.h"
@@ -55,9 +55,10 @@ namespace SteamAudio
 
     void SteamAudioSystemComponent::Reflect(AZ::ReflectContext* context)
     {
+        TaskDefinition::Reflect(context);
         SaEventAsset::Reflect(context);
         SaSoundAsset::Reflect(context);
-        EditorSaEventAsset::Reflect(context);
+        SaEventAsset::Reflect(context);
 
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -133,12 +134,8 @@ namespace SteamAudio
         m_soundAssetHandler.emplace();
         m_soundAssetHandler->Register();
 
-        m_eventAssetHandler.emplace("SaEventSource", "Sound", SaEventAsset::ProductExtension);
+        m_eventAssetHandler.emplace("SteamAudio Event", "Sound", SaEventAsset::Extension);
         m_eventAssetHandler->Register();
-
-        m_editorSaEventAssetHandler.emplace(
-            "SaEventSource", "Sound", EditorSaEventAsset::Extension);
-        m_editorSaEventAssetHandler->Register();
     }
 
     void SteamAudioSystemComponent::Deactivate()

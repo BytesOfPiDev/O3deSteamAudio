@@ -3,13 +3,12 @@
 
 #include "AzCore/base.h"
 #include "AzToolsFramework/API/ToolsApplicationAPI.h"
+#include "IAudioSystemEditor.h"
+
 #include "Builder/AudioControlBuilderWorker.h"
 #include "Builder/AudioEventAssetBuilderWorker.h"
 #include "Builder/SoundAssetBuilderWorker.h"
-#include "IAudioSystemEditor.h"
-
 #include "Clients/SteamAudioSystemComponent.h"
-#include "Engine/SrcSaEventAsset.h"
 
 namespace SteamAudio
 {

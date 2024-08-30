@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/AudioEventAsset.h"
+#include "Engine/SaEventAsset.h"
 #include "gmock/gmock-generated-function-mockers.h"
 
 class MockAudioEventAsset : public SteamAudio::SaEventAsset

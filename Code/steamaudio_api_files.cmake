@@ -7,5 +7,4 @@ set(FILES
     Include/SteamAudio/MiniAudio.h
     Include/SteamAudio/Pimpl.h
     Include/SteamAudio/Util.h
-    Include/SteamAudio/dr_wav.h
 )

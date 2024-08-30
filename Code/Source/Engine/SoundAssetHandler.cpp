@@ -4,7 +4,7 @@
 #include "AzCore/Component/ComponentApplicationBus.h"
 #include "AzCore/Serialization/Utils.h"
 
-#include "Engine/SoundAsset.h"
+#include "Engine/SaSoundAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
 namespace SteamAudio

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "AzCore/XML/rapidxml.h"
-#include "Engine/AudioEventAsset.h"
+
+#include "Engine/SaEventAsset.h"
 
 namespace SteamAudio
 {

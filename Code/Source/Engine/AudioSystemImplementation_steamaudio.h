@@ -185,6 +185,6 @@ namespace SteamAudio
         AZ::IO::Path m_soundBankFolder{};
         AZ::IO::Path m_localizedSoundBankFolder{};
 
-        SaGameObjectId m_globalGameObjectId{};
+        static constexpr SaGameObjectId m_globalGameObjectId{ GLOBAL_AUDIO_OBJECT_ID };
     };
 }  // namespace SteamAudio

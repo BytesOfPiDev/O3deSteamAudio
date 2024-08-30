@@ -1,13 +1,13 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
-#include "AzCore/Console/ILogger.h"
-#include "AzCore/std/smart_ptr/shared_ptr.h"
 #include "AzFramework/Asset/GenericAssetHandler.h"
-#include "Engine/AudioEvent.h"
-#include "Engine/Id.h"
-#include "Engine/SoundAsset.h"
 #include "IAudioInterfacesCommonData.h"
+
+#include "Engine/Id.h"
+#include "Engine/SaEvent.h"
+#include "Engine/Tasks/Task.h"
+#include "SteamAudio/SteamAudioTypeIds.h"
 
 extern "C" {
 struct ma_sound;
@@ -20,16 +20,17 @@ namespace SteamAudio
     class SaEventAsset : public AZ::Data::AssetData
     {
     public:
-        AZ_RTTI_NO_TYPE_INFO_DECL();
-        AZ_TYPE_INFO_WITH_NAME_DECL(SaEventAsset);
-        AZ_CLASS_ALLOCATOR_DECL;
+        AZ_RTTI_WITH_NAME(SaEventAsset, "SaEventAsset", SaEventAssetTypeId, AZ::Data::AssetData);
+        AZ_CLASS_ALLOCATOR(SaEventAsset, Audio::AudioImplAllocator);
+
         AZ_DISABLE_COPY_MOVE(SaEventAsset);
 
-        friend class AudioEventAssetHandler;
         friend class MiniAudioEngine;
 
-        static constexpr auto ProductExtension{ "saevent" };
-        static constexpr auto ProductExtensionWildcard{ "*.saevent" };
+        static constexpr auto CurrentVersion = 5u;
+
+        static constexpr auto Extension{ "saevent" };
+        static constexpr auto ExtensionWildcard{ "*.saevent" };
         static constexpr auto ProductExtensionRegex{
             R"((.*sounds\/steamaudio\/events\/).*\.saevent)"
         };
@@ -53,12 +54,9 @@ namespace SteamAudio
          */
         SaEventAsset();
         explicit SaEventAsset(AudioEventName eventName);
-        SaEventAsset(AudioEventName eventName, SetupFunc setupFunc);
         ~SaEventAsset() override;
 
         void SetEventName(AudioEventName eventName);
-
-        void SetSound(AZ::Data::Asset<SaSoundAsset> soundAsset);
 
         [[nodiscard]] auto GetEventName() const -> AudioEventName
         {
@@ -70,13 +68,6 @@ namespace SteamAudio
             return m_eventId;
         }
 
-        [[nodiscard]] auto GetSound() const -> AZ::Data::Asset<SaSoundAsset>
-        {
-            return m_soundAsset;
-        }
-
-        [[nodiscard]] auto CreateInstance() const -> AZStd::unique_ptr<SaEvent>;
-
         void PlayEvent() const
         {
         }
@@ -86,16 +77,9 @@ namespace SteamAudio
             m_setupFunc = AZStd::move(setupFunc);
         }
 
-        void LoadDependencies()
+        [[nodiscard]] auto GetTasksConfigs() const -> AZStd::vector<TaskDefinition>
         {
-            AZLOG(LOG_SaEventAsset, "Loading sound asset for event %s", m_name.c_str());
-            if (!m_soundAsset.GetId().IsValid())
-            {
-                return;
-            }
-
-            m_soundAsset.QueueLoad();
-            m_soundAsset.BlockUntilLoadComplete();
+            return m_tasks;
         }
 
     protected:
@@ -104,9 +88,8 @@ namespace SteamAudio
     private:
         SaEventId m_eventId{};
         AudioEventName m_name{};
-        AZ::Data::Asset<SaSoundAsset> m_soundAsset{};
-        AZStd::shared_ptr<ma_sound> m_soundInstance{};
         SetupFunc m_setupFunc{};
+        AZStd::vector<TaskDefinition> m_tasks{};
     };
 
     using AudioEventAssetDataPtr = AZ::Data::Asset<SaEventAsset>;

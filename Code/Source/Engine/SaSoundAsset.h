@@ -1,7 +1,5 @@
 #pragma once
 
-#include "IAudioInterfacesCommonData.h"
-
 #include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Name/Name.h"
 
@@ -55,10 +53,6 @@ namespace SteamAudio
         AZ_TYPE_INFO_WITH_NAME_DECL(SaSoundAsset);
         AZ_DISABLE_COPY_MOVE(SaSoundAsset);
         AZ_CLASS_ALLOCATOR_DECL;
-
-        struct ISoundImpl
-        {
-        };
 
         static void Reflect(AZ::ReflectContext* context);
 

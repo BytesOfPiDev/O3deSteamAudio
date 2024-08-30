@@ -23,6 +23,9 @@ namespace SteamAudio
         }
 
     protected:
+        [[nodiscard]] auto CanBuildFromAsset(
+            AssetBuilderSDK::ProcessJobRequest const& request,
+            AssetBuilderSDK::ProcessJobResponse const& response) const -> bool;
         void BuildFromAsset(
             AssetBuilderSDK::ProcessJobRequest const& request,
             AssetBuilderSDK::ProcessJobResponse& response) const;

@@ -1,4 +1,4 @@
-#include "Engine/SoundAsset.h"
+#include "Engine/SaSoundAsset.h"
 
 #include "AudioAllocators.h"
 #include "AzCore/Asset/AssetCommon.h"
@@ -7,7 +7,7 @@
 #include "AzCore/Serialization/SerializeContext.h"
 
 #include "Engine/ISoundEngine.h"
-#include "SteamAudio/MiniAudio.h"
+#include "Engine/SoundConfig.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
 namespace SteamAudio
@@ -16,16 +16,10 @@ namespace SteamAudio
     AZ_TYPE_INFO_WITH_NAME_IMPL(SaSoundAsset, "SteamAudioSoundAsset", SaSoundAssetTypeId);
     AZ_CLASS_ALLOCATOR_IMPL(SaSoundAsset, Audio::AudioImplAllocator);
 
-    namespace Internal
-    {
-        struct Sound : SaSoundAsset::ISoundImpl
-        {
-            ma_sound m_data{};
-        };
-    }  // namespace Internal
-
     void SaSoundAsset::Reflect(AZ::ReflectContext* context)
     {
+        SoundTaskConfig::Reflect(context);
+
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<SaSoundAsset, AZ::Data::AssetData>()->Version(1)->Field(
@@ -37,7 +31,6 @@ namespace SteamAudio
             {
                 edit->Class<SaSoundAsset>("SteamAudio Sound Asset", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                    ->Attribute(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute("AutoExpand", true);
             }
         }

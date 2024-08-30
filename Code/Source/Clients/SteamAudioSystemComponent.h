@@ -1,14 +1,14 @@
-
 #pragma once
 
 #include "AzCore/Component/Component.h"
 #include "AzCore/Component/TickBus.h"
+#include "Engine/SaEventAsset.h"
 #include "Engine/SoundAssetHandler.h"
 #include "IAudioSystem.h"
 
 #include "Engine/AudioSystemImplementation_steamaudio.h"
 #include "Engine/MaSoundEngine.h"
-#include "Engine/SrcSaEventAsset.h"
+#include "Engine/SaEventAsset.h"
 #include "SteamAudio/SteamAudioBus.h"
 
 namespace SteamAudio
@@ -71,7 +71,6 @@ namespace SteamAudio
     private:
         AZStd::optional<SaSoundAssetHandler> m_soundAssetHandler{ AZStd::nullopt };
         AZStd::optional<SaEventAssetGenericHandler> m_eventAssetHandler{ AZStd::nullopt };
-        AZStd::optional<EditorSaEventAssetHandler> m_editorSaEventAssetHandler{};
         AZStd::optional<AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
         /// Our sound engine, which uses ma_engine internally
         AZStd::optional<MaSoundEngine> m_soundEngine{ AZStd::nullopt };

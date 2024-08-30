@@ -10,8 +10,7 @@
 #include "AzCore/StringFunc/StringFunc.h"
 #include "AzCore/std/smart_ptr/make_shared.h"
 
-#include "Engine/SoundAsset.h"
-#include "SteamAudio/dr_wav.h"
+#include "Engine/SaSoundAsset.h"
 
 namespace SteamAudio
 {

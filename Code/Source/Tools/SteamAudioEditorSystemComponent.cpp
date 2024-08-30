@@ -7,7 +7,7 @@
 #include "Builder/SoundAssetBuilderWorker.h"
 #include "IAudioSystemEditor.h"
 
-#include "Engine/SrcSaEventAsset.h"
+#include "Engine/SaEventAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 #include "Tools/AudioSystemEditor_steamaudio.h"
 
@@ -149,7 +149,7 @@ namespace SteamAudio
         */
 
         builderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
-            EditorSaEventAsset::ExtensionWildcard,
+            SaEventAsset::ExtensionWildcard,
             AssetBuilderSDK::AssetBuilderPattern::PatternType::Wildcard));
 
         builderDescriptor.m_busId = azrtti_typeid<AudioEventAssetBuilderWorker>();
