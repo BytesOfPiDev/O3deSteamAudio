@@ -4,6 +4,7 @@
 #include "AudioAllocators.h"
 #include "AzCore/Console/ILogger.h"
 #include "AzCore/IO/FileIO.h"
+#include "AzCore/PlatformDef.h"
 #include "AzCore/RTTI/RTTIMacros.h"
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Settings/SettingsRegistry.h"
@@ -290,20 +291,16 @@ namespace SteamAudio
             return Audio::EAudioRequestStatus::Failure;
         }
 
-        auto const reportEventOutcome{ m_engine->ReportEvent(startEventData) };
-        if (!reportEventOutcome.IsSuccess())
+        implEventData->SetInstanceId(m_engine->ReportEvent(startEventData));
+
+        if (implEventData->GetInstanceId() == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
-            AZ_Error(
-                TYPEINFO_Name(),
-                false,
-                "Attempt to report trigger action failed [%s]",
-                reportEventOutcome.GetError().c_str());
+            AZ_Error(TYPEINFO_Name(), false, "Report event failed.");
             return Audio::EAudioRequestStatus::Failure;
         }
 
         implEventData->ChangeAtlEventState(Audio::EAudioEventState::eAES_PLAYING);
         // FIXME: Actually set the id
-        implEventData->SetInstanceId({});
 
         result = Audio::EAudioRequestStatus::Success;
 
@@ -311,9 +308,18 @@ namespace SteamAudio
     }
 
     auto AudioSystemImpl_steamaudio::StopEvent(
-        Audio::IATLAudioObjectData* const /*audioObjectData*/,
-        Audio::IATLEventData const* const /*eventData*/) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const audioObjectData,
+        Audio::IATLEventData const* const eventData) -> Audio::EAudioRequestStatus
     {
+        // auto* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData)
+        // }; auto* implEventData{ static_cast<SATLEventData_steamaudio const*>(eventData) };
+
+        /*
+              SaEventRequestBus::Event(
+                  implObjectData->GetId(), &AudioEventRequests::StopEventById, implEventData->)
+                  */
+
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Not implemented");
         return Audio::EAudioRequestStatus::Failure;
     }
 

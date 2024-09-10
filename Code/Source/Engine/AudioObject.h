@@ -1,17 +1,22 @@
 #pragma once
 
-#include "AzCore/Component/TransformBus.h"
-#include "AzCore/base.h"
-#include "phonon.h"
 #include <AudioAllocators.h>
 
+#include "AzCore/Component/TransformBus.h"
+#include "AzCore/base.h"
+
 #include "Engine/Id.h"
+#include "Engine/SaAudioObjectBus.h"
+#include "Engine/SaEvent.h"
+#include "phonon.h"
 
 namespace SteamAudio
 {
     class SaEvent;
 
-    class AudioObject : AZ::TransformNotificationBus::Handler
+    class AudioObject
+        : protected SaAudioObjectRequestBus::Handler
+        , protected AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_CLASS_ALLOCATOR_DECL;
@@ -19,7 +24,8 @@ namespace SteamAudio
         AZ_TYPE_INFO_WITH_NAME_DECL(AudioObject);
 
         AudioObject();
-        explicit AudioObject(AZ::EntityId entityId, IPLSimulator simulator);
+        explicit AudioObject(SaGameObjectId objectId);
+        AudioObject(AZ::EntityId entityId, IPLSimulator simulator);
 
         ~AudioObject() override;
 
@@ -43,13 +49,7 @@ namespace SteamAudio
             m_binauralEffectSettings = settings;
         }
 
-        void Update(float /*deltaTime*/)
-        {
-        }
-
-        void PushAudioEvent(SaEvent const* const /*audioEvent*/)
-        {
-        }
+        void Update(float /*deltaTime*/);
 
     protected:
         void OnTransformChanged(
@@ -58,7 +58,14 @@ namespace SteamAudio
         void OnParentTransformWillChange(
             AZ::Transform oldTransform, AZ::Transform newTransform) override;
 
+        auto PushEvent(SaEventId eventId) -> SaEventInstanceId override;
+        void PopEvent(SaEventId eventId) override;
+        void PopEvent(SaEventInstanceId instanceId) override;
+
+        auto FindEventInstance(SaEventId const& eventId) -> SaEventInstanceId;
+
     private:
+        AZStd::vector<SaEvent> m_events;
         SaGameObjectId m_gameObjectId{};
 
         IPLSimulationInputs m_inputs{};

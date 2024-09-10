@@ -1,29 +1,32 @@
 #pragma once
 
 #include "AzCore/EBus/EBus.h"
+
 #include "Engine/Id.h"
+
 namespace SteamAudio
 {
-    class AudioEventRequests
+    class SaEventInstanceRequests
     {
     public:
-        AZ_DISABLE_COPY_MOVE(AudioEventRequests);
+        AZ_DISABLE_COPY_MOVE(SaEventInstanceRequests);
 
-        AudioEventRequests() = default;
-        virtual ~AudioEventRequests() = default;
+        SaEventInstanceRequests() = default;
+        virtual ~SaEventInstanceRequests() = default;
 
-        virtual void StartEventById(SaEventId event) = 0;
-        virtual void StopEventById(SaEventId event) = 0;
+        virtual void StopEvent() = 0;
+        virtual auto GetParentAudioObject() -> SaGameObjectId = 0;
     };
 
-    struct AudioEventRequestBusTraits : AZ::EBusTraits
+    struct SaEventInstanceRequestBusTraits : AZ::EBusTraits
     {
         static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
         static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::ById;
-        using BusIdType = SaGameObjectId;
+        using BusIdType = SaEventInstanceId;
     };
 
-    using SaEventRequestBus = AZ::EBus<AudioEventRequests, AudioEventRequestBusTraits>;
+    using SaEventInstanceRequestBus =
+        AZ::EBus<SaEventInstanceRequests, SaEventInstanceRequestBusTraits>;
 
     class AudioEventNotifications
     {
@@ -46,5 +49,4 @@ namespace SteamAudio
 
     using AudioEventNotificationBus =
         AZ::EBus<AudioEventNotifications, AudioEventNotificationBusTraits>;
-
 }  // namespace SteamAudio

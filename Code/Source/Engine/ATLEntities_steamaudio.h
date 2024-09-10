@@ -100,7 +100,7 @@ namespace SteamAudio
 
         SATLEventData_steamaudio() = default;
         explicit SATLEventData_steamaudio(Audio::TAudioEventID atlEventId)
-            : m_atlEventId{ atlEventId }
+            : m_controlId{ atlEventId }
         {
         }
 
@@ -118,7 +118,7 @@ namespace SteamAudio
 
         [[nodiscard]] auto GetAtlEventId() const -> Audio::TAudioEventID
         {
-            return m_atlEventId;
+            return m_controlId;
         }
 
         [[nodiscard]] auto GetSourceId() const -> Audio::TAudioSourceId
@@ -143,7 +143,7 @@ namespace SteamAudio
 
     private:
         Audio::EAudioEventState m_atlEventState{};
-        Audio::TAudioEventID m_atlEventId{};
+        Audio::TAudioEventID m_controlId{};
         Audio::TAudioSourceId m_audioSourceId{};
         SaEventInstanceId m_triggerInstanceId{};
         SaId m_engineId{};

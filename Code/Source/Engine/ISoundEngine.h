@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/EBus/EBus.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Id.h"
@@ -69,9 +70,24 @@ namespace SteamAudio
             return {};
         }
 
-        [[nodiscard]] virtual auto ReportEvent(StartEventData const&) -> EngineNullOutcome
+        [[nodiscard]] virtual auto ReportEvent(StartEventData const&) -> SaEventInstanceId
         {
             return {};
+        }
+
+        virtual auto StartEvent(SaGameObjectId, AZ::Name const&) -> bool
+        {
+            return false;
+        }
+
+        virtual auto StartEvent(SaGameObjectId, AZ::Data::AssetId) -> bool
+        {
+            return false;
+        }
+
+        virtual auto StartEvent(SaGameObjectId, SaEventId) -> bool
+        {
+            return false;
         }
 
         virtual auto StopEvent(SaInstanceId const&) -> bool

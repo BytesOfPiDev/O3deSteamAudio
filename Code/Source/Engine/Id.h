@@ -1,8 +1,12 @@
 #pragma once
 
+#include "AzCore/Math/Crc.h"
 #include "AzCore/Math/Uuid.h"
 #include "AzCore/Name/Name.h"
+#include "AzCore/RTTI/ReflectContext.h"
+#include "AzCore/Serialization/SerializeContext.h"
 #include "IAudioInterfacesCommonData.h"
+#include "IAudioSystem.h"
 
 namespace SteamAudio
 {
@@ -37,14 +41,24 @@ namespace SteamAudio
             return !((*this) == other);
         }
 
-        [[nodiscard]] auto GetName() const -> AZStd::string
+        operator AZ::u64() const
+        {
+            return m_name.GetHash();
+        }
+
+        [[nodiscard]] auto GetName() const -> AZStd::string_view
         {
             if (m_name.IsEmpty())
             {
                 return {};
             }
 
-            return AZStd::string{ m_name.GetStringView() };
+            return m_name.GetStringView();
+        }
+
+        [[nodiscard]] auto IsValid() const -> bool
+        {
+            return m_value.IsNull();
         }
 
     private:
@@ -56,10 +70,73 @@ namespace SteamAudio
     using SaInstanceId = AZ::u32;
     static constexpr auto InvalidInstanceId{ 0 };
 
-    using SaGameObjectId = AZ::u64;  // Mimics AZ::EntityId
+    using SaGameObjectId = AZ::u64;
+    static constexpr auto InvalidSaGameObjectId{ INVALID_AUDIO_OBJECT_ID };
 
-    using SaEventId = Audio::TAudioTriggerImplID;
-    using SaEventInstanceId = Audio::TAudioTriggerInstanceID;
+    struct SaEventId
+    {
+        AZ_TYPE_INFO_WITH_NAME(SaEventId, "SaEventId", "9D910540-BC73-424F-8C05-3236DDAC4E96");
+
+        static void Reflect(AZ::ReflectContext* context)
+        {
+            if (auto* const serialize{ azrtti_cast<AZ::SerializeContext*>(context) })
+            {
+                serialize->Class<SaEventId>()->Version(0)->Field("Value", &SaEventId::m_value);
+            }
+        }
+
+        SaEventId() = default;
+        constexpr explicit SaEventId(AZ::Crc32 crc32)
+            : m_value{ crc32 } {};
+        constexpr explicit SaEventId(Audio::TAudioTriggerImplID eventId)
+            : m_value{ eventId } {};
+
+        SaEventId(AZStd::string_view eventName)
+            : m_value{ Audio::AudioStringToID<Audio::TAudioTriggerImplID>(eventName.data()) }
+        {
+        }
+
+        constexpr operator Audio::TAudioTriggerImplID() const
+        {
+            return m_value;
+        }
+
+        Audio::TAudioTriggerImplID m_value;
+    };
+
+    static constexpr auto InvalidEventId{ SaEventId{ INVALID_AUDIO_TRIGGER_IMPL_ID } };
+
+    struct SaEventInstanceId
+    {
+        AZ_TYPE_INFO_WITH_NAME(
+            SaEventInstanceId, "SaEventInstanceId", "22DE65F5-E40F-4951-849B-A4DE70134BA8");
+
+        static void Reflect(AZ::ReflectContext* context)
+        {
+            if (auto* const serialize{ azrtti_cast<AZ::SerializeContext*>(context) })
+            {
+                serialize->Class<SaEventInstanceId>()->Version(0)->Field(
+                    "Value", &SaEventInstanceId::m_value);
+            }
+        }
+
+        SaEventInstanceId() = default;
+        constexpr explicit SaEventInstanceId(AZ::Crc32 crc32)
+            : m_value{ crc32 } {};
+
+        constexpr explicit SaEventInstanceId(Audio::TAudioTriggerInstanceID eventInstanceId)
+            : m_value{ eventInstanceId } {};
+
+        constexpr operator Audio::TAudioTriggerInstanceID() const
+        {
+            return m_value;
+        }
+
+        Audio::TAudioTriggerInstanceID m_value;
+    };
+
+    static constexpr auto InvalidEventInstanceId{ SaEventInstanceId{
+        INVALID_AUDIO_TRIGGER_INSTANCE_ID } };
 
     namespace Events
     {

@@ -5,8 +5,6 @@
 #include "AzCore/Preprocessor/EnumReflectUtils.h"
 #include "AzCore/std/any.h"
 
-#include "Engine/Id.h"
-
 namespace SteamAudio
 {
     AZ_ENUM_CLASS(TaskType, Start, Stop);

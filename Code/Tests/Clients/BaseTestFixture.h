@@ -29,8 +29,6 @@ private:
     AZ::IO::FileIOBase* m_prevFileIo{};
     AZStd::unique_ptr<AZ::IO::LocalFileIO> m_fileIo{};
 
-    SteamAudio::SaEventAssetGenericHandler m_audioEventAssetHandler{
-        "SaEventAsset", "Sound", SteamAudio::SaEventAsset::Extension
-    };
-    SteamAudio::SaSoundAssetHandler m_soundAssetHandler{};
+    AZStd::unique_ptr<SteamAudio::SaEventAssetGenericHandler> m_audioEventAssetHandler{};
+    AZStd::unique_ptr<SteamAudio::SaSoundAssetHandler> m_soundAssetHandler{};
 };

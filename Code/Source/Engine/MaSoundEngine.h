@@ -11,8 +11,10 @@
 #include "Engine/Id.h"
 #include "Engine/SaEvent.h"
 #include "Engine/SaEventAsset.h"
+#include "Engine/SaRegisteredEvent.h"
 #include "Engine/SaSoundAsset.h"
 #include "Engine/SoundSourceLoader.h"
+#include "IAudioInterfacesCommonData.h"
 
 extern "C" {
 struct ma_engine;
@@ -46,7 +48,7 @@ namespace SteamAudio
         auto RegisterAudioObject(SaGameObjectId const& /*audioObject*/)
             -> EngineNullOutcome override;
 
-        auto ReportEvent(StartEventData const&) -> EngineNullOutcome override;
+        auto ReportEvent(StartEventData const&) -> SaEventInstanceId override;
 
     protected:
         auto InitMiniAudio() -> EngineNullOutcome;
@@ -56,9 +58,8 @@ namespace SteamAudio
         void LoadEventAssets();
         void LoadSounds();
 
-        [[nodiscard]] auto FindEvent(SaEventId eventId) const
-            -> AZ::Outcome<AZ::Data::Asset<SaEventAsset>, AZStd::string>;
-        auto FindObject(SaGameObjectId id) -> AZ::Outcome<AudioObject*>;
+        void ActivateEvent(SaGameObjectId, AZ::Name);
+        void ActivateEvent(SaGameObjectId, AZ::Data::AssetId);
 
     private:
         IPLContextSettings m_contextSettings{};
@@ -72,29 +73,13 @@ namespace SteamAudio
             Audio::AudioImplStdAllocator>;
         GameObjectMap<SaGameObjectId, AudioObject> m_registeredObjects{};
 
-        AZStd::vector<AZStd::unique_ptr<SaEvent>> m_activeEvents{};
-
-        template<typename KeyType, typename ValueType>
-        using EventAssetMap = AZStd::unordered_map<
-            KeyType,
-            AZ::Data::Asset<ValueType>,
-            AZStd::hash<KeyType>,
-            AZStd::equal_to<KeyType>,
-            Audio::AudioImplStdAllocator>;
-        EventAssetMap<SaEventId, SaEventAsset> m_registeredEvents{};
-
-        template<typename KeyType, typename ValueType>
-        using SoundAssetMap = AZStd::unordered_map<
-            KeyType,
-            AZ::Data::Asset<ValueType>,
-            AZStd::hash<KeyType>,
-            AZStd::equal_to<KeyType>,
-            Audio::AudioImplStdAllocator>;
-        EventAssetMap<AZ::Name, SaSoundAsset> m_soundAssets{};
+        AZStd::vector<AZStd::unique_ptr<SaRegisteredEvent>> m_registeredEvents{};
 
         AZStd::any m_maEngine{};
         bool m_initialized{};
 
         SoundSourceLoader m_soundLoader{};
+
+        AudioObject m_globalAudioObject{ SaGameObjectId{ GLOBAL_AUDIO_OBJECT_ID } };
     };
 }  // namespace SteamAudio

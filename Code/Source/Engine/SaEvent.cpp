@@ -3,7 +3,6 @@
 #include "AzCore/Console/ILogger.h"
 #include "IAudioInterfacesCommonData.h"
 
-#include "Engine/AudioEventBus.h"
 #include "Engine/Id.h"
 #include "Engine/SaEventAsset.h"
 #include "Engine/Sound.h"
@@ -14,11 +13,19 @@
 
 namespace SteamAudio
 {
+
+    auto GetNextInstanceId()
+    {
+        AZStd::atomic<Audio::TAudioTriggerInstanceID> nextInstanceId{ 1 };
+        return nextInstanceId++;
+    }
+
     struct SoundEventTask : public ITaskInstance
     {
         AZ_DISABLE_COPY_MOVE(SoundEventTask);
         AZ_RTTI_WITH_NAME(
             SoundEventTask, "SoundTask", "3C0EBC61-6BB8-401B-8F1E-C87C9194B375", ITaskInstance);
+
         SoundEventTask(SoundTaskConfig const& config)
             : m_source{ config.m_asset,
                         AZ::Name{ AZ::Uuid::CreateRandom().ToFixedString().c_str() } }
@@ -48,6 +55,7 @@ namespace SteamAudio
             {
                 return;
             }
+
             ma_sound_start(&m_sound);
         }
 
@@ -64,10 +72,9 @@ namespace SteamAudio
         SoundSource m_source{};
     };
 
-    SaEvent::SaEvent() = default;
-
-    SaEvent::SaEvent(AZ::Data::AssetId eventAssetId, SaGameObjectId objectId)
-        : m_objectId{ objectId }
+    SaEvent::SaEvent(AZ::Data::AssetId eventAssetId)
+        : m_eventState(SaAudioEventState::eAES_LOADING)
+        , m_eventInstanceId(GetNextInstanceId())
     {
         auto eventAsset{ AZ::Data::Asset<SaEventAsset>{ eventAssetId,
                                                         AZ::AzTypeInfo<SaEventAsset>::Uuid() } };
@@ -75,18 +82,12 @@ namespace SteamAudio
                                : AZ::Data::AssetData::AssetStatus{};
 
         AZ_Error("SaEvent", eventAsset, "Unable to get event asset w/ id '%s'", eventAssetId);
-        AZ_Error(
-            "SaEvent",
-            m_objectId != INVALID_AUDIO_OBJECT_ID,
-            "Invalid audio object id: %zu",
-            objectId);
+        AZ_Error("SaEvent", m_eventInstanceId != INVALID_AUDIO_TRIGGER_INSTANCE_ID, "Invalid SaId");
 
-        if (!eventAsset || m_objectId == INVALID_AUDIO_OBJECT_ID)
+        if (!eventAsset || m_eventInstanceId == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
             return;
         }
-
-        SaEventRequestBus::Handler::BusConnect(m_objectId);
 
         AZStd::ranges::for_each(
             eventAsset->GetTasksConfigs(),
@@ -101,75 +102,54 @@ namespace SteamAudio
                     m_tasks.emplace_back(aznew SoundEventTask{ soundTaskConfig });
                 }
             });
-    }
-
-    SaEvent::~SaEvent()
-    {
-        SaEventRequestBus::Handler::BusDisconnect();
+        m_eventState = SaAudioEventState::eAES_NONE;
     }
 
     void SaEvent::Update(float)
     {
+        if (m_eventState != SaAudioEventState::eAES_PLAYING)
+        {
+            return;
+        }
     }
 
     void SaEvent::StartEvent()
     {
-        auto const* const objectId = SaEventRequestBus::GetCurrentBusId();
-        if (!objectId)
+        if (m_eventInstanceId == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
+            AZLOG_INFO("Unable to start event due to invalid SaId");
             return;
         }
 
-        AZLOG(LOG_SaEvent, "SaEvent::Start(objectId: %llu)", *objectId);
+        AZLOG(LOG_SaEvent, "StartEvent: %llu", static_cast<Audio::TAudioTriggerImplID>(m_eventId));
         AZStd::ranges::for_each(
             m_tasks,
             [](auto& task)
             {
                 task ? task->StartTask() : void();
             });
+
+        m_eventState = SaAudioEventState::eAES_PLAYING;
     }
 
     void SaEvent::StopEvent()
     {
-        auto const* const objectId = SaEventRequestBus::GetCurrentBusId();
-        if (!objectId)
+        if (m_eventInstanceId == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
             return;
         }
 
-        AZLOG(LOG_SaEvent, "SaEvent::Stop(objectId: %llu)", *objectId);
+        m_eventState = SaAudioEventState::eAES_UNLOADING;
+        AZLOG(
+            LOG_SaEvent,
+            "SaEvent::Stop(objectId: %llu)",
+            static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
         AZStd::ranges::for_each(
             m_tasks,
             [](auto& task)
             {
                 task ? task->StopTask() : void();
             });
+        m_eventState = SaAudioEventState::eAES_NONE;
     };
-
-    void SaEvent::Prepare() const {
-
-    };
-
-    void SaEvent::StartEventById(SaEventId id)
-    {
-        if (id != m_eventId)
-        {
-            AZLOG_INFO("StartEventById: Id %llu is not ours - '%llu'", id, m_eventId);
-            return;
-        }
-
-        AZLOG_INFO("StartEventById: %llu", id);
-
-        StartEvent();
-    }
-
-    void SaEvent::StopEventById(SaEventId id)
-    {
-        if (id != m_eventId)
-        {
-            return;
-        }
-
-        StopEvent();
-    }
 }  // namespace SteamAudio

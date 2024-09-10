@@ -1,12 +1,9 @@
 #include <AzTest/AzTest.h>
 #include <gtest/gtest.h>
 
-#include "AzCore/Module/Environment.h"
 #include "AzCore/Outcome/Outcome.h"
 #include "AzCore/UnitTest/UnitTest.h"
 #include "Clients/AudioImplTestFixture.h"
-#include "Engine/ISoundEngine.h"
-#include "Engine/MaSoundEngine.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Clients/BaseTestFixture.h"
@@ -96,7 +93,7 @@ TEST_F(BaseTestFixture, InitializeAudioImpl_ActivateInvalidTriggerUsingValidImpl
     EXPECT_CALL(mockSoundEngine, Initialize).Times(1).WillOnce(Return(AZ::Success()));
     EXPECT_CALL(mockSoundEngine, ReportEvent)
         .Times(1)
-        .WillOnce(Return(AZ::Failure("Event does not exist")));
+        .WillOnce(Return(SteamAudio::SaEventInstanceId{}));
     EXPECT_CALL(mockSoundEngine, Shutdown).Times(1);
 
     []() -> void

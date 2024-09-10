@@ -27,7 +27,7 @@ namespace SteamAudio
 
         friend class MiniAudioEngine;
 
-        static constexpr auto CurrentVersion = 5u;
+        static constexpr auto CurrentVersion = 6u;
 
         static constexpr auto Extension{ "saevent" };
         static constexpr auto ExtensionWildcard{ "*.saevent" };
@@ -63,7 +63,7 @@ namespace SteamAudio
             return m_name;
         }
 
-        [[nodiscard]] auto GetEventId() const -> Audio::TAudioEventID
+        [[nodiscard]] auto GetEventId() const -> SaEventId
         {
             return m_eventId;
         }
@@ -92,9 +92,20 @@ namespace SteamAudio
         AZStd::vector<TaskDefinition> m_tasks{};
     };
 
-    using AudioEventAssetDataPtr = AZ::Data::Asset<SaEventAsset>;
-    using AudioEventAssets = AZStd::vector<AudioEventAssetDataPtr>;
+    using SaEventDataPtr = AZ::Data::Asset<SaEventAsset>;
+    using AudioEventAssets = AZStd::vector<SaEventDataPtr>;
 
     using SaEventAssetGenericHandler = AzFramework::GenericAssetHandler<SaEventAsset>;
+
+    class RegisteredEventRequests
+    {
+    public:
+        AZ_DISABLE_COPY_MOVE(RegisteredEventRequests);
+
+        RegisteredEventRequests() = default;
+        virtual ~RegisteredEventRequests() = default;
+
+        [[nodiscard]] virtual auto GetEvent() const -> AZ::Data::Asset<SaEventAsset> = 0;
+    };
 
 }  // namespace SteamAudio

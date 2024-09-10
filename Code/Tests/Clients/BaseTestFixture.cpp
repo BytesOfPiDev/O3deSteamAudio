@@ -6,7 +6,12 @@
 #include "AzCore/IO/FileIO.h"
 #include "AzCore/IO/Streamer/StreamerComponent.h"
 #include "AzCore/Jobs/JobManagerComponent.h"
+#include "AzCore/RTTI/RTTIMacros.h"
 #include "AzCore/Settings/SettingsRegistry.h"
+#include "AzFramework/Asset/AssetCatalogComponent.h"
+
+#include "Engine/Configuration.h"
+#include "Engine/SaEventAsset.h"
 
 class BaseApp : public AZ::ComponentApplication
 {
@@ -19,6 +24,7 @@ public:
         required.push_back(azrtti_typeid<AZ::AssetManagerComponent>());
         required.push_back(azrtti_typeid<AZ::StreamerComponent>());
         required.push_back(azrtti_typeid<AZ::JobManagerComponent>());
+        required.push_back(azrtti_typeid<AzFramework::AssetCatalogComponent>());
 
         return required;
     }
@@ -39,6 +45,7 @@ void BaseTestFixture::SetUp()
 
     m_app = AZStd::make_unique<BaseApp>();
     m_app->RegisterComponentDescriptor(AZ::AssetManagerComponent::CreateDescriptor());
+    m_app->RegisterComponentDescriptor(AzFramework::AssetCatalogComponent::CreateDescriptor());
 
     m_systemEntity = m_app->Create(appDesc, startupParams);
     m_systemEntity->Init();
@@ -47,8 +54,9 @@ void BaseTestFixture::SetUp()
     AZ::Test::AddActiveGem("SteamAudio", *AZ::SettingsRegistry::Get(), GetFileIo());
     ASSERT_TRUE(m_fileIo->ResolvePath("@gemroot:SteamAudio@").has_value());
 
+    // FIXME: Dynamically set OS folder
     AZStd::optional<AZ::IO::FixedMaxPath> const productPath =
-        AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Cache/test");
+        AZ::IO::FileIOBase::GetInstance()->ResolvePath("@gemroot:SteamAudio@/Test/Cache/linux");
     ASSERT_TRUE(productPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@products@", productPath.value().c_str());
 
@@ -57,18 +65,27 @@ void BaseTestFixture::SetUp()
     ASSERT_TRUE(testAssetPath.has_value());
     AZ::IO::FileIOBase::GetInstance()->SetAlias("@assets@", testAssetPath.value().c_str());
 
-    m_audioEventAssetHandler.Register();
-    m_soundAssetHandler.Register();
+    AZStd::optional<AZ::IO::FixedMaxPath> const testEventsPath =
+        AZ::IO::FileIOBase::GetInstance()->ResolvePath("@products@/sounds/steamaudio/events");
+    ASSERT_TRUE(testEventsPath.has_value());
+    AZ::IO::FileIOBase::GetInstance()->SetAlias(
+        SteamAudio::EventsAlias, testEventsPath.value().c_str());
+
+    m_audioEventAssetHandler = AZStd::make_unique<SteamAudio::SaEventAssetGenericHandler>(
+        "SaEventAsset", "Sound", SteamAudio::SaEventAsset::Extension);
+    m_soundAssetHandler = AZStd::make_unique<SteamAudio::SaSoundAssetHandler>();
+    m_audioEventAssetHandler->Register();
+    m_soundAssetHandler->Register();
 }
 
 void BaseTestFixture::TearDown()
 {
-    m_soundAssetHandler.Unregister();
-    m_audioEventAssetHandler.Unregister();
-
     m_systemEntity = nullptr;
     m_app->Destroy();
     m_app = nullptr;
+
+    [[maybe_unused]] auto* p1{ m_soundAssetHandler.release() };
+    [[maybe_unused]] auto* p2{ m_audioEventAssetHandler.release() };
 
     AZ::IO::FileIOBase::SetInstance(nullptr);
     m_fileIo = nullptr;

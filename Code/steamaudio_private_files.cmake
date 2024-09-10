@@ -31,10 +31,13 @@ set(FILES
     Source/Engine/MaSoundEngine.cpp
     Source/Engine/MaSoundEngine.h
     Source/Engine/Parameters.h
+    Source/Engine/SaAudioObjectBus.h
     Source/Engine/SaEvent.cpp
     Source/Engine/SaEvent.h
     Source/Engine/SaEventAsset.cpp
     Source/Engine/SaEventAsset.h
+    Source/Engine/SaRegisteredEvent.h
+    Source/Engine/SaRegisteredEventBus.h
     Source/Engine/SaSoundAsset.cpp
     Source/Engine/SaSoundAsset.h
     Source/Engine/Sound.cpp
