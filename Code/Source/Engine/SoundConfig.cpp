@@ -2,11 +2,10 @@
 
 #include <AzCore/Asset/AssetSerializer.h>
 
+#include "AzCore/Asset/AssetCommon.h"
 #include "AzCore/Serialization/EditContext.h"
 #include "AzCore/Serialization/EditContextConstants.inl"
 #include "AzCore/Serialization/SerializeContext.h"
-
-#include "Engine/SaEventAsset.h"
 
 namespace SteamAudio
 {
@@ -32,6 +31,7 @@ namespace SteamAudio
                         AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::Show)
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, &SoundTaskConfig::m_asset, "Sound Asset", "")
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &SoundTaskConfig::AssetChanged)
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, &SoundTaskConfig::m_volume, "Volume", "")
                     ->DataElement(
@@ -39,4 +39,9 @@ namespace SteamAudio
             }
         }
     }
+
+    void SoundTaskConfig::AssetChanged()
+    {
+        m_asset.SetAutoLoadBehavior(AZ::Data::AssetLoadBehavior::PreLoad);
+    };
 }  // namespace SteamAudio

@@ -57,8 +57,6 @@ namespace SteamAudio
     {
         TaskDefinition::Reflect(context);
         SaEventAsset::Reflect(context);
-        SaSoundAsset::Reflect(context);
-        SaEventAsset::Reflect(context);
 
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -131,7 +129,7 @@ namespace SteamAudio
         SteamAudioRequestBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
 
-        m_soundAssetHandler.emplace();
+        m_soundAssetHandler.emplace("SteamAudio Sound", "Sound", SaSoundAsset::ProductExtension);
         m_soundAssetHandler->Register();
 
         m_eventAssetHandler.emplace("SteamAudio Event", "Sound", SaEventAsset::Extension);

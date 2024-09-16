@@ -36,14 +36,15 @@ set(FILES
     Source/Engine/SaEvent.h
     Source/Engine/SaEventAsset.cpp
     Source/Engine/SaEventAsset.h
+    Source/Engine/SaEventAssetHandler.cpp
+    Source/Engine/SaEventAssetHandler.h
+    Source/Engine/SaRegisteredEvent.cpp
     Source/Engine/SaRegisteredEvent.h
     Source/Engine/SaRegisteredEventBus.h
     Source/Engine/SaSoundAsset.cpp
     Source/Engine/SaSoundAsset.h
     Source/Engine/Sound.cpp
     Source/Engine/Sound.h
-    Source/Engine/SoundAssetHandler.cpp
-    Source/Engine/SoundAssetHandler.h
     Source/Engine/SoundBankAssetHandler.cpp
     Source/Engine/SoundBankAssetHandler.h
     Source/Engine/SoundConfig.cpp

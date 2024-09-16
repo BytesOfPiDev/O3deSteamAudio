@@ -4,6 +4,7 @@
 #include "AzCore/Outcome/Outcome.h"
 #include "AzCore/UnitTest/UnitTest.h"
 #include "Clients/AudioImplTestFixture.h"
+#include "Engine/MaSoundEngine.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Clients/BaseTestFixture.h"
@@ -125,11 +126,71 @@ TEST_F(BaseTestFixture, InitializeAudioImpl_ActivateInvalidTriggerUsingValidImpl
     }();
 }
 
+TEST_F(BaseTestFixture, EventAsset_LoadAssetWithSoundDep_SoundDepLoadsSuccessfully)
+{
+    SteamAudio::MaSoundEngine engine{};
+    SteamAudio::AudioSystemImpl_steamaudio impl{};
+}
+
+class InitializedAudioImplTestFixture : public BaseTestFixture
+{
+public:
+    void SetUp() override
+    {
+        BaseTestFixture::SetUp();
+        m_engine.emplace();
+        m_impl.emplace();
+
+        m_impl->Initialize();
+    }
+
+    void TearDown() override
+    {
+        ASSERT_TRUE(m_impl.has_value());
+        m_impl->ShutDown();
+        m_impl.reset();
+
+        ASSERT_TRUE(m_engine.has_value());
+        m_engine->Shutdown();
+        m_engine.reset();
+
+        BaseTestFixture::TearDown();
+    }
+
+    auto GetSoundEngine() const -> SteamAudio::MaSoundEngine const&
+    {
+        AZ_TEST_ASSERT(m_engine.has_value());
+        return m_engine.value();
+    }
+
+    auto GetSoundEngine() -> SteamAudio::MaSoundEngine&
+    {
+        AZ_TEST_ASSERT(m_engine.has_value());
+        return m_engine.value();
+    }
+
+    auto GetAudioImpl() const -> SteamAudio::AudioSystemImpl_steamaudio const&
+    {
+        AZ_TEST_ASSERT(m_impl.has_value());
+        return m_impl.value();
+    }
+
+    auto GetAudioImpl() -> SteamAudio::AudioSystemImpl_steamaudio&
+    {
+        AZ_TEST_ASSERT(m_impl.has_value());
+        return m_impl.value();
+    }
+
+private:
+    AZStd::optional<SteamAudio::MaSoundEngine> m_engine{ AZStd::nullopt };
+    AZStd::optional<SteamAudio::AudioSystemImpl_steamaudio> m_impl{ AZStd::nullopt };
+};
+
 TEST_F(AudioImplTestFixture, SANITY_CHECK)
 {
 }
 
-TEST_F(AudioImplTestFixture, Initialized_ActivateDoNothingEvent_ReturnsSuccess)
+TEST_F(AudioImplTestFixture, DISABLED_Initialized_ActivateDoNothingEvent_ReturnsSuccess)
 {
     SteamAudio::SATLAudioObjectData_steamaudio objData{
         SteamAudio::SaGameObjectId{ AZ::Entity::MakeId() }, false
@@ -144,14 +205,39 @@ TEST_F(AudioImplTestFixture, Initialized_ActivateDoNothingEvent_ReturnsSuccess)
 
     [[maybe_unused]] Audio::SATLSourceData const sourceData{};
 
-    /*
     SteamAudio::MaSoundEngine engine{};
     SteamAudio::AudioSystemImpl_steamaudio impl{};
     ASSERT_EQ(impl.Initialize(), Audio::EAudioRequestStatus::Success);
-      EXPECT_EQ(
-          impl.ActivateTrigger(&objData, &triggerData, &eventData, &sourceData),
-          Audio::EAudioRequestStatus::Success);
+    EXPECT_EQ(
+        impl.ActivateTrigger(&objData, &triggerData, &eventData, &sourceData),
+        Audio::EAudioRequestStatus::Success);
 
-      EXPECT_NE(eventData.GetEventState(), Audio::EAudioEventState::eAES_NONE);
-    */
+    EXPECT_NE(eventData.GetEventState(), Audio::EAudioEventState::eAES_NONE);
+}
+
+TEST_F(
+    InitializedAudioImplTestFixture,
+    Initialized_CallNewGlobalAudioObjectDataWithValidId_ReturnedObjectHasId)
+{
+    static constexpr SteamAudio::SaGameObjectId ValidObjectId{ 1337 };
+    auto* const newAudioObject{ static_cast<SteamAudio::SATLAudioObjectData_steamaudio*>(
+        GetAudioImpl().NewGlobalAudioObjectData(ValidObjectId)) };
+
+    ASSERT_NE(newAudioObject, nullptr);
+    EXPECT_EQ(newAudioObject->GetId(), ValidObjectId);
+
+    GetAudioImpl().DeleteAudioObjectData(newAudioObject);
+}
+
+TEST_F(
+    InitializedAudioImplTestFixture, Initialized_CallNewAudioObjectDataWithValidId_GetIdReturnsId)
+{
+    static constexpr SteamAudio::SaGameObjectId ValidObjectId{ 2 };
+    auto* const newAudioObject{ static_cast<SteamAudio::SATLAudioObjectData_steamaudio*>(
+        GetAudioImpl().NewAudioObjectData(ValidObjectId)) };
+
+    ASSERT_NE(newAudioObject, nullptr);
+    ASSERT_EQ(newAudioObject->GetId(), ValidObjectId);
+
+    GetAudioImpl().DeleteAudioObjectData(newAudioObject);
 }

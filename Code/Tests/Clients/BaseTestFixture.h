@@ -8,7 +8,7 @@
 #include "AzFramework/IO/LocalFileIO.h"
 
 #include "Engine/SaEventAsset.h"
-#include "Engine/SoundAssetHandler.h"
+#include "Engine/SaSoundAsset.h"
 
 class BaseTestFixture
     : public UnitTest::TraceBusRedirector
@@ -30,5 +30,5 @@ private:
     AZStd::unique_ptr<AZ::IO::LocalFileIO> m_fileIo{};
 
     AZStd::unique_ptr<SteamAudio::SaEventAssetGenericHandler> m_audioEventAssetHandler{};
-    AZStd::unique_ptr<SteamAudio::SaSoundAssetHandler> m_soundAssetHandler{};
+    AZStd::unique_ptr<SteamAudio::SaSoundAssetGenericHandler> m_soundAssetHandler{};
 };

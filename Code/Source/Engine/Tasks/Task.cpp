@@ -5,23 +5,19 @@
 #include "AzCore/Serialization/SerializeContext.h"
 
 #include "Engine/SoundConfig.h"
+#include "SteamAudio/SteamAudioTypeIds.h"
 
 namespace SteamAudio
 {
-    AZ_TYPE_INFO_WITH_NAME_IMPL(TaskDefinition, "EventTask", "A6F92268-DA9B-4C4E-B71F-B694F18A68B5")
-    AZ_TYPE_INFO_SPECIALIZE_WITH_NAME_IMPL(
-        TaskType, "TaskAction", "45735319-B512-475E-BF13-4F72DC58A443");
+    AZ_TYPE_INFO_WITH_NAME_IMPL(TaskDefinition, "EventTask", TaskDefinitionTypeId)
 
     void TaskDefinition::Reflect(AZ::ReflectContext* context)
     {
+        SoundTaskConfig::Reflect(context);
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            TaskTypeReflect(*serialize);
-
-            serialize->Class<TaskDefinition>()
-                ->Version(0)
-                ->Field("Config", &TaskDefinition::m_config)
-                ->Field("Action", &TaskDefinition::m_taskType);
+            serialize->Class<TaskDefinition>()->Version(3)->Field(
+                "Config", &TaskDefinition::m_config);
 
             if (auto* edit = serialize->GetEditContext())
             {
@@ -33,15 +29,9 @@ namespace SteamAudio
                         "")
                     ->Attribute(
                         AZ::Edit::Attributes::Visibility,
-                        AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::ComboBox, &TaskDefinition::m_taskType, "Action", "");
+                        AZ::Edit::PropertyVisibility::ShowChildrenOnly);
             }
         }
     }
 
-    TaskDefinition::TaskDefinition()
-        : m_config{ SoundTaskConfig{} }
-    {
-    }  // FIXME: Forcing sound task for now
 }  // namespace SteamAudio

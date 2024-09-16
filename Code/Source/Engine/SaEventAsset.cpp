@@ -13,6 +13,10 @@ namespace SteamAudio
     {
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
+            SaEventId::Reflect(context);
+            SaEventInstanceId::Reflect(context);
+            SaSoundAsset::Reflect(context);
+
             serialize->Class<SaEventAsset, AZ::Data::AssetData>()
                 ->Version(SaEventAsset::CurrentVersion)
                 ->Attribute(AZ::Edit::Attributes::EnableForAssetEditor, true)

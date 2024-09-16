@@ -39,44 +39,24 @@ namespace SteamAudio
             return m_gameObjectId;
         }
 
-        [[nodiscard]] auto GetBinauralEffectSettings() const -> IPLBinauralEffectSettings
-        {
-            return m_binauralEffectSettings;
-        }
-
-        void SetBinauralEffectSettings(IPLBinauralEffectSettings settings)
-        {
-            m_binauralEffectSettings = settings;
-        }
-
         void Update(float /*deltaTime*/);
 
     protected:
-        void OnTransformChanged(
-            const AZ::Transform& /*local*/, const AZ::Transform& /*world*/) override;
-
-        void OnParentTransformWillChange(
-            AZ::Transform oldTransform, AZ::Transform newTransform) override;
+        using EventIter = AZStd::vector<SaEvent>::iterator;
 
         auto PushEvent(SaEventId eventId) -> SaEventInstanceId override;
-        void PopEvent(SaEventId eventId) override;
-        void PopEvent(SaEventInstanceId instanceId) override;
+        void PopEventByEventId(SaEventId eventId) override;
+        void PopEventByInstanceId(SaEventInstanceId instanceId) override;
 
         auto FindEventInstance(SaEventId const& eventId) -> SaEventInstanceId;
+        auto FindEvent(SaEventId const& eventId) -> EventIter;
+        auto FindEvent(SaEventInstanceId const& instanceId) -> EventIter;
+
+        void PopEvent(EventIter);
 
     private:
         AZStd::vector<SaEvent> m_events;
         SaGameObjectId m_gameObjectId{};
-
-        IPLSimulationInputs m_inputs{};
-
-        IPLBinauralEffectSettings m_binauralEffectSettings{};
-        [[maybe_unused]] IPLAudioBuffer m_inBuffer{};
-        [[maybe_unused]] IPLAudioBuffer m_outBuffer{};
-
-        IPLSourceSettings m_sourceSettings{};
-        IPLSource m_source{};
-        IPLSimulator m_simulator{};
         AZ::EntityId m_entityId{};
     };
 

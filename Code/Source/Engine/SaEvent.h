@@ -1,11 +1,11 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
+#include "Engine/Sound.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Engine/AudioObject.h"
 #include "Engine/Id.h"
-#include "Engine/Tasks/Task.h"
 
 namespace SteamAudio
 {
@@ -25,6 +25,8 @@ namespace SteamAudio
         static constexpr auto EmptyEventTask = [](SaGameObjectId) -> void
         {
         };
+
+        using EventFunc = AZStd::function<void(SaGameObjectId)>;
 
         SaEvent() = delete;
         /// Configures itself based on the given SaEventAsset
@@ -59,6 +61,8 @@ namespace SteamAudio
         SaAudioEventState m_eventState{};
         SaEventId m_eventId{};
         SaEventInstanceId m_eventInstanceId{};
-        AZStd::vector<AZStd::unique_ptr<ITaskInstance>> m_tasks{};
+        AZStd::vector<SoundSource> m_soundSources{};
+        AZStd::vector<SoundInstance> m_soundInstances{};
+        AZStd::vector<EventFunc> m_tasks{};
     };
 }  // namespace SteamAudio

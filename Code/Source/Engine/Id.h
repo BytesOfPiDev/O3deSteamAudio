@@ -96,13 +96,39 @@ namespace SteamAudio
         {
         }
 
-        constexpr operator Audio::TAudioTriggerImplID() const
+        [[nodiscard]] auto GetValue() const -> Audio::TAudioTriggerImplID
         {
             return m_value;
         }
 
+        constexpr explicit operator size_t() const
+        {
+            return m_value;
+        }
+
+        constexpr explicit operator Audio::TAudioTriggerImplID() const
+        {
+            return m_value;
+        }
+
+        constexpr auto operator==(SaEventId const& other) const -> bool
+        {
+            return m_value == other.m_value;
+        }
+        constexpr auto operator!=(SaEventId const& other) const -> bool
+        {
+            return !operator==(other);
+        }
+
+        [[nodiscard]] constexpr auto IsValid() const
+        {
+            return m_value != INVALID_AUDIO_TRIGGER_IMPL_ID;
+        }
+
         Audio::TAudioTriggerImplID m_value;
     };
+
+    static_assert(AZStd::is_pod<SaEventId>(), "Must be POD");
 
     static constexpr auto InvalidEventId{ SaEventId{ INVALID_AUDIO_TRIGGER_IMPL_ID } };
 

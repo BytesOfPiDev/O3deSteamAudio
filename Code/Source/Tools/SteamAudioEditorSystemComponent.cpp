@@ -2,12 +2,13 @@
 
 #include "AssetBuilderSDK/AssetBuilderSDK.h"
 #include "AzCore/Serialization/SerializeContext.h"
+#include "IAudioSystemEditor.h"
+
 #include "Builder/AudioControlBuilderWorker.h"
 #include "Builder/AudioEventAssetBuilderWorker.h"
 #include "Builder/SoundAssetBuilderWorker.h"
-#include "IAudioSystemEditor.h"
-
 #include "Engine/SaEventAsset.h"
+#include "Engine/SaSoundAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 #include "Tools/AudioSystemEditor_steamaudio.h"
 
@@ -177,7 +178,7 @@ namespace SteamAudio
     void SteamAudioEditorSystemComponent::ConfigureSaSoundBuilder()
     {
         // Register MiniSound Asset
-        auto* materialAsset = aznew AzFramework::GenericAssetHandler<SaSoundAsset>(
+        auto* materialAsset = aznew SaSoundAssetGenericHandler(
             "SteamAudio Sound Asset", SaSoundAsset::AssetGroup, SaSoundAsset::ProductExtension);
         materialAsset->Register();
         m_assetHandlers.emplace_back(materialAsset);

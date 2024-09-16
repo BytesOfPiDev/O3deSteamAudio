@@ -15,8 +15,8 @@ namespace SteamAudio
         virtual ~SaAudioObjectRequests() = default;
 
         virtual auto PushEvent(SaEventId eventId) -> SaEventInstanceId = 0;
-        virtual void PopEvent(SaEventId eventId) = 0;
-        virtual void PopEvent(SaEventInstanceId instanceId) = 0;
+        virtual void PopEventByEventId(SaEventId eventId) = 0;
+        virtual void PopEventByInstanceId(SaEventInstanceId instanceId) = 0;
     };
 
     struct SaAudioObjectRequestBusTraits : public AZ::EBusTraits

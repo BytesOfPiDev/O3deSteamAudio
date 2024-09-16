@@ -9,10 +9,7 @@
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
-#include "Engine/SaEvent.h"
-#include "Engine/SaEventAsset.h"
 #include "Engine/SaRegisteredEvent.h"
-#include "Engine/SaSoundAsset.h"
 #include "Engine/SoundSourceLoader.h"
 #include "IAudioInterfacesCommonData.h"
 
@@ -79,7 +76,6 @@ namespace SteamAudio
         bool m_initialized{};
 
         SoundSourceLoader m_soundLoader{};
-
-        AudioObject m_globalAudioObject{ SaGameObjectId{ GLOBAL_AUDIO_OBJECT_ID } };
+        AZStd::optional<AudioObject> m_globalAudioObject{ AZStd::nullopt };
     };
 }  // namespace SteamAudio

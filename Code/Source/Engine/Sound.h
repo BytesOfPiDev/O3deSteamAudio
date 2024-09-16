@@ -5,6 +5,7 @@
 #include "AzCore/std/any.h"
 
 #include "Engine/SaSoundAsset.h"
+#include "Engine/SoundConfig.h"
 
 extern "C" {
 struct ma_sound;
@@ -15,16 +16,18 @@ namespace SteamAudio
     class SoundInstance
     {
     public:
-        AZ_DISABLE_COPY_MOVE(SoundInstance);
-
-        SoundInstance(AZ::Data::Asset<SaSoundAsset> soundAsset);
+        SoundInstance(AZ::Name soundName, bool loop = false, float volume = 1.0f);
+        SoundInstance(SoundInstance const&) = delete;
+        SoundInstance(SoundInstance&& other);
+        auto operator=(SoundInstance const&) -> SoundInstance& = delete;
+        auto operator=(SoundInstance&& other) -> SoundInstance& = delete;
         ~SoundInstance();
 
         [[nodiscard]] auto GetNative() const -> ma_sound*;
 
     private:
         AZStd::any m_lowLevelSound{};
-        AZ::Data::Asset<AZ::Data::AssetData> m_soundAsset{};
+        AZ::Name m_soundName{};
     };
 
     class SoundSource
@@ -33,8 +36,7 @@ namespace SteamAudio
         AZ_DISABLE_COPY(SoundSource);
 
         SoundSource() = default;
-        SoundSource(AZ::Data::Asset<AZ::Data::AssetData> asset);
-        SoundSource(AZ::Data::Asset<AZ::Data::AssetData> soundAsset, AZ::Name name);
+        SoundSource(AZ::Data::Asset<SaSoundAsset> soundAsset, AZ::Name name);
         ~SoundSource();
 
         [[nodiscard]] auto GetName() const -> AZ::Name
@@ -47,7 +49,7 @@ namespace SteamAudio
 
     private:
         AZ::Name m_name{};
-        AZ::Data::Asset<AZ::Data::AssetData> m_asset{};
+        AZ::Data::Asset<SaSoundAsset> m_asset{};
     };
 
 }  // namespace SteamAudio

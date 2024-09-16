@@ -28,7 +28,7 @@ namespace SteamAudio
 
     auto AudioEventAssetBuilderWorker::CanBuildFromAsset(
         AssetBuilderSDK::ProcessJobRequest const& request,
-        AssetBuilderSDK::ProcessJobResponse const& response) const -> bool
+        AssetBuilderSDK::ProcessJobResponse const&) const -> bool
     {
         if (!AZ::StringFunc::Equal(request.m_jobDescription.m_jobKey, BuildAudioEventJobKey))
         {

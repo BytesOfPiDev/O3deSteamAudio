@@ -9,6 +9,7 @@
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Settings/SettingsRegistry.h"
 #include "AzCore/StringFunc/StringFunc.h"
+#include "Engine/SaAudioObjectBus.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystemImplementation.h"
 
@@ -175,6 +176,12 @@ namespace SteamAudio
 
         auto const registerOutcome{ m_engine->RegisterAudioObject(implAudioObjectData->GetId()) };
 
+        if (!registerOutcome.IsSuccess())
+        {
+            AZLOG_ERROR(
+                "Failed to register audio object w/ id '%llu'", implAudioObjectData->GetId());
+        }
+
         return registerOutcome.IsSuccess() ? Audio::EAudioRequestStatus::Success
                                            : Audio::EAudioRequestStatus::Failure;
     }
@@ -282,6 +289,13 @@ namespace SteamAudio
             result.m_gameObjectId = objectId;
             result.m_eventId = implTriggerData->GetImplEventId();
             result.m_eventName = implTriggerData->GetEventName();
+
+            AZLOG(
+                LOG_asi_steamaudio,
+                "StartEventData { objId: %llu | eventId: %llu | eventName: %s }",
+                result.m_gameObjectId,
+                result.m_eventId.GetValue(),
+                result.m_eventName.GetCStr());
             return result;
         }();
 
@@ -311,16 +325,31 @@ namespace SteamAudio
         Audio::IATLAudioObjectData* const audioObjectData,
         Audio::IATLEventData const* const eventData) -> Audio::EAudioRequestStatus
     {
-        // auto* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData)
-        // }; auto* implEventData{ static_cast<SATLEventData_steamaudio const*>(eventData) };
+        AZ_Assert(audioObjectData, "Audio object data must not be null");
+        AZ_Assert(eventData, "Event data must not be null");
 
-        /*
-              SaEventRequestBus::Event(
-                  implObjectData->GetId(), &AudioEventRequests::StopEventById, implEventData->)
-                  */
+        if (!audioObjectData || !eventData)
+        {
+            return Audio::EAudioRequestStatus::FailureInvalidRequest;
+        }
 
-        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Not implemented");
-        return Audio::EAudioRequestStatus::Failure;
+        auto* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData) };
+        auto* implEventData{ static_cast<SATLEventData_steamaudio const*>(eventData) };
+
+        if (!SaAudioObjectRequestBus::HasHandlers(implObjectData->GetId()))
+        {
+            AZLOG_ERROR(
+                "SaAudioObjectRequestBus has no handler for id '%llu'", implObjectData->GetId());
+
+            return Audio::EAudioRequestStatus::FailureInvalidObjectId;
+        }
+
+        SaAudioObjectRequestBus::Event(
+            implObjectData->GetId(),
+            &SaAudioObjectRequests::PopEventByInstanceId,
+            implEventData->GetInstanceId());
+
+        return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::StopAllEvents(
@@ -518,10 +547,30 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::NewAudioTriggerImplData(
         const AZ::rapidxml::xml_node<char>* audioTriggerNode) -> Audio::IATLTriggerImplData*
     {
-        AZLOG(LOG_asi_steamaudio, "SteamAudio received a request for a new audio trigger.\n");
+        AZLOG_INFO("SteamAudio received a request for a new audio trigger.");
 
-        if (!audioTriggerNode ||
-            !AZ::StringFunc::Equal(audioTriggerNode->name(), XmlTags::TriggerTag))
+        AZ_Error(
+            AZ_FUNCTION_SIGNATURE,
+            audioTriggerNode,
+            "Audio trigger xml node is null - unable to create new trigger");
+
+        if (!audioTriggerNode)
+        {
+            return nullptr;
+        }
+
+        auto const nodeIsTrigger{ AZ::StringFunc::Equal(
+            audioTriggerNode->name(), XmlTags::TriggerTag) };
+
+        AZ_Error(
+            AZ_FUNCTION_SIGNATURE,
+            nodeIsTrigger,
+            "Unable to create new trigger from xml node - expected node to be named '%s', but we "
+            "found '%s'",
+            XmlTags::TriggerTag,
+            audioTriggerNode->name());
+
+        if (!nodeIsTrigger)
         {
             return nullptr;
         }
@@ -605,18 +654,18 @@ namespace SteamAudio
     }
 
     auto AudioSystemImpl_steamaudio::NewGlobalAudioObjectData(
-        Audio::TAudioObjectID const /*atlObjectId*/) -> Audio::IATLAudioObjectData*
+        Audio::TAudioObjectID const atlObjectId) -> Audio::IATLAudioObjectData*
     {
-        AZLOG(
-            LOG_asi_steamaudio,
-            "SteamAudio received a request for a new global audio object data.\n");
-        return azcreate(SATLAudioObjectData_steamaudio, (), Audio::AudioImplAllocator);
+        AZLOG_INFO("Global audio object data created w/ id '%llu", atlObjectId);
+        return azcreate(
+            SATLAudioObjectData_steamaudio, (atlObjectId, false), Audio::AudioImplAllocator);
     }
 
-    auto AudioSystemImpl_steamaudio::NewAudioObjectData(Audio::TAudioObjectID const /*atlObjectId*/)
+    auto AudioSystemImpl_steamaudio::NewAudioObjectData(Audio::TAudioObjectID const atlObjectId)
         -> Audio::IATLAudioObjectData*
     {
-        return azcreate(SATLAudioObjectData_steamaudio, (), Audio::AudioImplAllocator);
+        return azcreate(
+            SATLAudioObjectData_steamaudio, (atlObjectId, false), Audio::AudioImplAllocator);
     }
 
     void AudioSystemImpl_steamaudio::DeleteAudioObjectData(
@@ -652,9 +701,6 @@ namespace SteamAudio
         -> Audio::IATLEventData*
     {
         AZLOG(LOG_asi_steamaudio, "BopAudio: NewAudioEventData");
-
-        // eventArgs.m_saId = m_engine->CreateNewEvent();
-
         return azcreate(SATLEventData_steamaudio, (atlEventId), Audio::AudioImplAllocator);
     }
 
@@ -714,7 +760,8 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::CreateAudioSource(Audio::SAudioInputConfig const& sourceConfig)
         -> bool
     {
-        AZLOG(LOG_asi_steamaudio, "%s is creating an audio source.\n", TYPEINFO_Name());
+        AZLOG(
+            LOG_asi_steamaudio, "Creating AudioSource: %s ", sourceConfig.m_sourceFilename.c_str());
 
         AudioSourceManager::Get().CreateSource(sourceConfig);
 

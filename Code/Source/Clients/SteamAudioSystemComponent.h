@@ -3,7 +3,7 @@
 #include "AzCore/Component/Component.h"
 #include "AzCore/Component/TickBus.h"
 #include "Engine/SaEventAsset.h"
-#include "Engine/SoundAssetHandler.h"
+#include "Engine/SaSoundAsset.h"
 #include "IAudioSystem.h"
 
 #include "Engine/AudioSystemImplementation_steamaudio.h"
@@ -69,7 +69,7 @@ namespace SteamAudio
         ////////////////////////////////////////////////////////////////////////
 
     private:
-        AZStd::optional<SaSoundAssetHandler> m_soundAssetHandler{ AZStd::nullopt };
+        AZStd::optional<SaSoundAssetGenericHandler> m_soundAssetHandler{ AZStd::nullopt };
         AZStd::optional<SaEventAssetGenericHandler> m_eventAssetHandler{ AZStd::nullopt };
         AZStd::optional<AudioSystemImpl_steamaudio> m_audioSystemImpl{ AZStd::nullopt };
         /// Our sound engine, which uses ma_engine internally

@@ -7,7 +7,6 @@
 #include "AzCore/Serialization/SerializeContext.h"
 
 #include "Engine/ISoundEngine.h"
-#include "Engine/SoundConfig.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
 namespace SteamAudio
@@ -18,8 +17,6 @@ namespace SteamAudio
 
     void SaSoundAsset::Reflect(AZ::ReflectContext* context)
     {
-        SoundTaskConfig::Reflect(context);
-
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<SaSoundAsset, AZ::Data::AssetData>()->Version(1)->Field(

@@ -5,6 +5,7 @@
 #include "Engine/Common_steamaudio.h"
 #include "Engine/Id.h"
 #include "Engine/Parameters.h"
+#include "SteamAudio/SteamAudioTypeIds.h"
 
 extern "C" {
 struct ma_engine;
@@ -19,7 +20,7 @@ namespace SteamAudio
     class ISoundEngine
     {
     public:
-        AZ_RTTI(ISoundEngine, "{51A10EAC-C03B-4583-9594-C25CC8A4755D}");
+        AZ_RTTI(ISoundEngine, ISoundEngineTypeId);
         AZ_DISABLE_COPY_MOVE(ISoundEngine);
 
         ISoundEngine() = default;

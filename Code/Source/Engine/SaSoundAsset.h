@@ -5,6 +5,7 @@
 
 #include <SteamAudio/SteamAudioBus.h>
 
+#include "AzFramework/Asset/GenericAssetHandler.h"
 #include "Engine/ISoundEngine.h"
 
 extern "C" {
@@ -65,5 +66,7 @@ namespace SteamAudio
 
         AZStd::vector<AZ::u8> m_data;
     };
+
+    using SaSoundAssetGenericHandler = AzFramework::GenericAssetHandler<SaSoundAsset>;
 
 }  // namespace SteamAudio

@@ -19,7 +19,7 @@ namespace SteamAudio
         SATLAudioObjectData_steamaudio() = default;
         SATLAudioObjectData_steamaudio(SaGameObjectId id, bool hasPosition)
             : m_hasPosition{ hasPosition }
-            , m_id{ id } {};
+            , m_objectId{ id } {};
         ~SATLAudioObjectData_steamaudio() override = default;
 
         [[nodiscard]] auto HasPosition() const -> bool
@@ -29,7 +29,7 @@ namespace SteamAudio
 
         [[nodiscard]] auto GetId() const
         {
-            return m_id;
+            return m_objectId;
         }
 
         void SetName(AZ::Name name)
@@ -44,7 +44,7 @@ namespace SteamAudio
 
     private:
         bool m_hasPosition{};
-        SaGameObjectId m_id{};
+        SaGameObjectId m_objectId{};
         AZ::Name m_name;
     };
 

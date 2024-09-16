@@ -10,6 +10,7 @@ set(FILES
     Tests/Clients/BaseTestFixture.cpp
     Tests/Clients/BaseTestFixture.h
     Tests/Clients/AudioImplTestFixture.h
+    Tests/Clients/SoundEngineNativeEventTestFixture.h
     Tests/Clients/SoundEngineTestFixture.h
     Tests/Clients/SteamAudioTestEnvironment.cpp
     Tests/Clients/SteamAudioIntegrationTest.cpp

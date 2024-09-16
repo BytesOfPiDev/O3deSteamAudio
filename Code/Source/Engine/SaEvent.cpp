@@ -1,6 +1,7 @@
 #include "Engine/SaEvent.h"
 
 #include "AzCore/Console/ILogger.h"
+#include "AzCore/PlatformDef.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Engine/Id.h"
@@ -20,11 +21,12 @@ namespace SteamAudio
         return nextInstanceId++;
     }
 
-    struct SoundEventTask : public ITaskInstance
+    struct SoundEventTask
     {
         AZ_DISABLE_COPY_MOVE(SoundEventTask);
-        AZ_RTTI_WITH_NAME(
-            SoundEventTask, "SoundTask", "3C0EBC61-6BB8-401B-8F1E-C87C9194B375", ITaskInstance);
+        AZ_TYPE_INFO_WITH_NAME(SoundEventTask, "SoundTask", "3C0EBC61-6BB8-401B-8F1E-C87C9194B375");
+
+        SoundEventTask() = default;
 
         SoundEventTask(SoundTaskConfig const& config)
             : m_source{ config.m_asset,
@@ -34,7 +36,7 @@ namespace SteamAudio
                 Util::GetMaEngine(), m_source.GetName().GetCStr(), 0, nullptr, nullptr, &m_sound) };
 
             AZ_Error(
-                TYPEINFO_Name(),
+                AZ_FUNCTION_SIGNATURE,
                 result == MA_SUCCESS,
                 "'%s' is not a registered sound.",
                 m_source.GetName().GetCStr());
@@ -47,9 +49,9 @@ namespace SteamAudio
             ma_sound_set_looping(&m_sound, config.m_loop);
         };
 
-        ~SoundEventTask() override = default;
+        ~SoundEventTask() = default;
 
-        void StartTask() override
+        void StartTask()
         {
             if (!ma_sound_get_data_source(&m_sound))
             {
@@ -59,7 +61,7 @@ namespace SteamAudio
             ma_sound_start(&m_sound);
         }
 
-        void StopTask() override
+        void StopTask()
         {
             if (!ma_sound_get_data_source(&m_sound))
             {
@@ -90,17 +92,20 @@ namespace SteamAudio
         }
 
         AZStd::ranges::for_each(
-            eventAsset->GetTasksConfigs(),
+            eventAsset->GetTasksDefinitions(),
             [this](TaskDefinition& taskDef)
             {
-                auto const& config = taskDef.GetConfig();
-                if (config.is<SoundTaskConfig>())
-                {
-                    auto const& soundTaskConfig{ AZStd::any_cast<SoundTaskConfig const&>(config) };
-                    AZ_Error("SaEvent", false, "TESTING: Got sound task config!");
+                [[maybe_unused]] auto const& config = taskDef.GetConfig();
+                AZ_Error("SaEvent", false, "TESTING: Got sound task config!");
 
-                    m_tasks.emplace_back(aznew SoundEventTask{ soundTaskConfig });
-                }
+                AZ::Name randomId{ AZ::Uuid::CreateRandom().ToFixedString().c_str() };
+                m_soundSources.emplace_back(taskDef.GetConfig().m_asset, randomId);
+                m_soundInstances.emplace_back(randomId, true);
+
+                m_tasks.emplace_back(
+                    [](SaGameObjectId)
+                    {
+                    });
             });
         m_eventState = SaAudioEventState::eAES_NONE;
     }
@@ -117,17 +122,9 @@ namespace SteamAudio
     {
         if (m_eventInstanceId == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
-            AZLOG_INFO("Unable to start event due to invalid SaId");
+            AZLOG_INFO("Unable to start event due to invalid event instance id");
             return;
         }
-
-        AZLOG(LOG_SaEvent, "StartEvent: %llu", static_cast<Audio::TAudioTriggerImplID>(m_eventId));
-        AZStd::ranges::for_each(
-            m_tasks,
-            [](auto& task)
-            {
-                task ? task->StartTask() : void();
-            });
 
         m_eventState = SaAudioEventState::eAES_PLAYING;
     }
@@ -144,12 +141,9 @@ namespace SteamAudio
             LOG_SaEvent,
             "SaEvent::Stop(objectId: %llu)",
             static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
-        AZStd::ranges::for_each(
-            m_tasks,
-            [](auto& task)
-            {
-                task ? task->StopTask() : void();
-            });
+
+        m_soundInstances.clear();
+
         m_eventState = SaAudioEventState::eAES_NONE;
     };
 }  // namespace SteamAudio

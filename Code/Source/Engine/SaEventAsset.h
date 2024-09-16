@@ -1,8 +1,8 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
+#include "AzCore/PlatformDef.h"
 #include "AzFramework/Asset/GenericAssetHandler.h"
-#include "IAudioInterfacesCommonData.h"
 
 #include "Engine/Id.h"
 #include "Engine/SaEvent.h"
@@ -63,7 +63,7 @@ namespace SteamAudio
             return m_name;
         }
 
-        [[nodiscard]] auto GetEventId() const -> SaEventId
+        [[nodiscard]] constexpr auto GetEventId() const -> SaEventId
         {
             return m_eventId;
         }
@@ -72,12 +72,17 @@ namespace SteamAudio
         {
         }
 
+        constexpr auto IsValid() const -> bool
+        {
+            return m_eventId.IsValid();
+        }
+
         void ChangeSetupFunc(SetupFunc setupFunc)
         {
             m_setupFunc = AZStd::move(setupFunc);
         }
 
-        [[nodiscard]] auto GetTasksConfigs() const -> AZStd::vector<TaskDefinition>
+        [[nodiscard]] auto GetTasksDefinitions() const -> AZStd::vector<TaskDefinition>
         {
             return m_tasks;
         }
