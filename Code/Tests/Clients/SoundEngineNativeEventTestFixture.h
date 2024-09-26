@@ -37,5 +37,5 @@ public:
 
 private:
     AZStd::optional<SteamAudio::MaSoundEngine> m_engine{ AZStd::nullopt };
-    AZStd::optional<SteamAudio::AudioObject> m_globalObject{ AZStd::nullopt };
+    AZStd::optional<SteamAudio::SaAudioObject> m_globalObject{ AZStd::nullopt };
 };

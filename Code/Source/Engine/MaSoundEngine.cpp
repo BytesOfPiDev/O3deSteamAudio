@@ -374,7 +374,7 @@ namespace SteamAudio
 
     auto MaSoundEngine::RegisterAudioObject(SaGameObjectId const& objectId) -> EngineNullOutcome
     {
-        m_registeredObjects.insert({ objectId, aznew AudioObject{ objectId } });
+        m_registeredObjects.insert({ objectId, aznew SaAudioObject{ objectId } });
 
         AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Not implemented.");
         return AZ::Failure("Not implemented.");

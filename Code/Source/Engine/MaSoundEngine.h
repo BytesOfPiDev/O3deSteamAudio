@@ -68,7 +68,7 @@ namespace SteamAudio
             AZStd::hash<KeyType>,
             AZStd::equal_to<KeyType>,
             Audio::AudioImplStdAllocator>;
-        GameObjectMap<SaGameObjectId, AudioObject> m_registeredObjects{};
+        GameObjectMap<SaGameObjectId, SaAudioObject> m_registeredObjects{};
 
         AZStd::vector<AZStd::unique_ptr<SaRegisteredEvent>> m_registeredEvents{};
 
@@ -76,6 +76,6 @@ namespace SteamAudio
         bool m_initialized{};
 
         SoundSourceLoader m_soundLoader{};
-        AZStd::optional<AudioObject> m_globalAudioObject{ AZStd::nullopt };
+        AZStd::optional<SaAudioObject> m_globalAudioObject{ AZStd::nullopt };
     };
 }  // namespace SteamAudio

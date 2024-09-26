@@ -14,20 +14,20 @@ namespace SteamAudio
 {
     class SaEvent;
 
-    class AudioObject
+    class SaAudioObject
         : protected SaAudioObjectRequestBus::Handler
         , protected AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_CLASS_ALLOCATOR_DECL;
-        AZ_DISABLE_COPY_MOVE(AudioObject);
-        AZ_TYPE_INFO_WITH_NAME_DECL(AudioObject);
+        AZ_DISABLE_COPY_MOVE(SaAudioObject);
+        AZ_TYPE_INFO_WITH_NAME_DECL(SaAudioObject);
 
-        AudioObject();
-        explicit AudioObject(SaGameObjectId objectId);
-        AudioObject(AZ::EntityId entityId, IPLSimulator simulator);
+        SaAudioObject();
+        explicit SaAudioObject(SaGameObjectId objectId);
+        SaAudioObject(AZ::EntityId entityId, IPLSimulator simulator);
 
-        ~AudioObject() override;
+        ~SaAudioObject() override;
 
         explicit operator AZ::u64() const
         {

@@ -12,12 +12,12 @@
 
 namespace SteamAudio
 {
-    AZ_CLASS_ALLOCATOR_IMPL(AudioObject, Audio::AudioImplAllocator);
-    AZ_TYPE_INFO_WITH_NAME_IMPL(AudioObject, "AudioObject", SaAudioObjectTypeId);
+    AZ_CLASS_ALLOCATOR_IMPL(SaAudioObject, Audio::AudioImplAllocator);
+    AZ_TYPE_INFO_WITH_NAME_IMPL(SaAudioObject, "AudioObject", SaAudioObjectTypeId);
 
-    AudioObject::AudioObject() = default;
+    SaAudioObject::SaAudioObject() = default;
 
-    AudioObject::AudioObject(SaGameObjectId objectId)
+    SaAudioObject::SaAudioObject(SaGameObjectId objectId)
         : m_gameObjectId{ objectId }
     {
         if (m_gameObjectId == INVALID_AUDIO_OBJECT_ID)
@@ -37,21 +37,21 @@ namespace SteamAudio
         SaAudioObjectRequestBus::Handler::BusConnect(m_gameObjectId);
     }
 
-    AudioObject::~AudioObject()
+    SaAudioObject::~SaAudioObject()
     {
         SaAudioObjectRequestBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect(
             static_cast<AZ::EntityId>(m_gameObjectId));
     }
 
-    auto AudioObject::FindEventInstance(SaEventId const& eventId) -> SaEventInstanceId
+    auto SaAudioObject::FindEventInstance(SaEventId const& eventId) -> SaEventInstanceId
     {
         auto const eventIter{ FindEvent(eventId) };
         return (eventIter != AZStd::end(m_events)) ? eventIter->GetEventInstanceId()
                                                    : InvalidEventInstanceId;
     }
 
-    auto AudioObject::PushEvent(SaEventId eventId) -> SaEventInstanceId
+    auto SaAudioObject::PushEvent(SaEventId eventId) -> SaEventInstanceId
     {
         AZ::Data::Asset<SaEventAsset> eventAsset{};
         SaRegisteredEventRequestBus::EventResult(
@@ -73,7 +73,7 @@ namespace SteamAudio
         return event.GetEventInstanceId();
     }
 
-    void AudioObject::PopEvent(EventIter eventIter)
+    void SaAudioObject::PopEvent(EventIter eventIter)
     {
         if (eventIter == AZStd::end(m_events))
         {
@@ -84,21 +84,21 @@ namespace SteamAudio
         m_events.erase(eventIter);
     }
 
-    void AudioObject::PopEventByEventId(SaEventId eventId)
+    void SaAudioObject::PopEventByEventId(SaEventId eventId)
     {
         PopEvent(FindEvent(eventId));
     }
 
-    void AudioObject::PopEventByInstanceId(SaEventInstanceId instanceId)
+    void SaAudioObject::PopEventByInstanceId(SaEventInstanceId instanceId)
     {
         PopEvent(FindEvent(instanceId));
     }
 
-    void AudioObject::Update(float /*deltaTime*/)
+    void SaAudioObject::Update(float /*deltaTime*/)
     {
     }
 
-    auto AudioObject::FindEvent(SaEventId const& eventId) -> EventIter
+    auto SaAudioObject::FindEvent(SaEventId const& eventId) -> EventIter
     {
         return AZStd::ranges::find_if(
             m_events,
@@ -108,7 +108,7 @@ namespace SteamAudio
             });
     }
 
-    auto AudioObject::FindEvent(SaEventInstanceId const& instanceId) -> EventIter
+    auto SaAudioObject::FindEvent(SaEventInstanceId const& instanceId) -> EventIter
     {
         return AZStd::ranges::find_if(
             m_events,
