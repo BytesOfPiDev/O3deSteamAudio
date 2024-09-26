@@ -75,7 +75,7 @@ namespace SteamAudio
 
     struct SaEventId
     {
-        AZ_TYPE_INFO_WITH_NAME(SaEventId, "SaEventId", "9D910540-BC73-424F-8C05-3236DDAC4E96");
+        AZ_TYPE_INFO_WITH_NAME(SaEventId, "SaEventId", "{9D910540-BC73-424F-8C05-3236DDAC4E96}");
 
         static void Reflect(AZ::ReflectContext* context)
         {
