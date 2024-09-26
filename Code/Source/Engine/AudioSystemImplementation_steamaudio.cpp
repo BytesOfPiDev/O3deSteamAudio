@@ -78,22 +78,27 @@ namespace SteamAudio
 
     void AudioSystemImpl_steamaudio::OnAudioSystemLoseFocus()
     {
+        AZLOG(LOG_asi_steamaudio, "SteamAudio focus lost");
     }
 
     void AudioSystemImpl_steamaudio::OnAudioSystemGetFocus()
     {
+        AZLOG(LOG_asi_steamaudio, "SteamAudio got focus");
     }
 
     void AudioSystemImpl_steamaudio::OnAudioSystemMuteAll()
     {
+        AZLOG(LOG_asi_steamaudio, "SteamAudio received mute all signal");
     }
 
     void AudioSystemImpl_steamaudio::OnAudioSystemUnmuteAll()
     {
+        AZLOG(LOG_asi_steamaudio, "SteamAudio received unmute all signal");
     }
 
     void AudioSystemImpl_steamaudio::OnAudioSystemRefresh()
     {
+        AZLOG(LOG_asi_steamaudio, "SteamAudio received system refresh signal");
     }
 
     void AudioSystemImpl_steamaudio::Update(float const updateIntervalMS)
