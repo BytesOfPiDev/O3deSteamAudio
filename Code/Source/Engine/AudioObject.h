@@ -24,7 +24,7 @@ namespace SteamAudio
         AZ_TYPE_INFO_WITH_NAME_DECL(SaAudioObject);
 
         SaAudioObject();
-        explicit SaAudioObject(SaGameObjectId objectId);
+        explicit SaAudioObject(SaAudioObjectId objectId);
         SaAudioObject(AZ::EntityId entityId, IPLSimulator simulator);
 
         ~SaAudioObject() override;
@@ -34,7 +34,7 @@ namespace SteamAudio
             return static_cast<AZ::u64>(m_gameObjectId);
         }
 
-        [[nodiscard]] auto GetUniqueId() const -> SaGameObjectId
+        [[nodiscard]] auto GetUniqueId() const -> SaAudioObjectId
         {
             return m_gameObjectId;
         }
@@ -56,7 +56,7 @@ namespace SteamAudio
 
     private:
         AZStd::vector<SaEvent> m_events;
-        SaGameObjectId m_gameObjectId{};
+        SaAudioObjectId m_gameObjectId{};
         AZ::EntityId m_entityId{};
     };
 

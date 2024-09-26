@@ -17,7 +17,7 @@ namespace SteamAudio
         AZ_DEFAULT_COPY_MOVE(SATLAudioObjectData_steamaudio);
 
         SATLAudioObjectData_steamaudio() = default;
-        SATLAudioObjectData_steamaudio(SaGameObjectId id, bool hasPosition)
+        SATLAudioObjectData_steamaudio(SaAudioObjectId id, bool hasPosition)
             : m_hasPosition{ hasPosition }
             , m_objectId{ id } {};
         ~SATLAudioObjectData_steamaudio() override = default;
@@ -44,7 +44,7 @@ namespace SteamAudio
 
     private:
         bool m_hasPosition{};
-        SaGameObjectId m_objectId{};
+        SaAudioObjectId m_objectId{};
         AZ::Name m_name;
     };
 

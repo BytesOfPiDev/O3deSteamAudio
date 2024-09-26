@@ -17,7 +17,7 @@ namespace SteamAudio
 
     SaAudioObject::SaAudioObject() = default;
 
-    SaAudioObject::SaAudioObject(SaGameObjectId objectId)
+    SaAudioObject::SaAudioObject(SaAudioObjectId objectId)
         : m_gameObjectId{ objectId }
     {
         if (m_gameObjectId == INVALID_AUDIO_OBJECT_ID)

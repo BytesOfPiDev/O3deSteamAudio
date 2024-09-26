@@ -103,7 +103,7 @@ namespace SteamAudio
                 m_soundInstances.emplace_back(randomId, true);
 
                 m_tasks.emplace_back(
-                    [](SaGameObjectId)
+                    [](SaAudioObjectId)
                     {
                     });
             });

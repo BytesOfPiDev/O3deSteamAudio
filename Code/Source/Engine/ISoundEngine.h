@@ -41,7 +41,7 @@ namespace SteamAudio
             return AZ::Failure("Unimplemented");
         };
 
-        virtual auto RegisterAudioObject(SaGameObjectId const& /*objectId*/) -> EngineNullOutcome
+        virtual auto RegisterAudioObject(SaAudioObjectId const& /*objectId*/) -> EngineNullOutcome
         {
             return {};
         }
@@ -66,7 +66,7 @@ namespace SteamAudio
         {
         }
 
-        virtual auto Unregister(SaGameObjectId const& /*objectId*/) -> EngineNullOutcome
+        virtual auto Unregister(SaAudioObjectId const& /*objectId*/) -> EngineNullOutcome
         {
             return {};
         }
@@ -76,17 +76,17 @@ namespace SteamAudio
             return {};
         }
 
-        virtual auto StartEvent(SaGameObjectId, AZ::Name const&) -> bool
+        virtual auto StartEvent(SaAudioObjectId, AZ::Name const&) -> bool
         {
             return false;
         }
 
-        virtual auto StartEvent(SaGameObjectId, AZ::Data::AssetId) -> bool
+        virtual auto StartEvent(SaAudioObjectId, AZ::Data::AssetId) -> bool
         {
             return false;
         }
 
-        virtual auto StartEvent(SaGameObjectId, SaEventId) -> bool
+        virtual auto StartEvent(SaAudioObjectId, SaEventId) -> bool
         {
             return false;
         }

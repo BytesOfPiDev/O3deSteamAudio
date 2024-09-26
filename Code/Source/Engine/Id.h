@@ -70,7 +70,7 @@ namespace SteamAudio
     using SaInstanceId = AZ::u32;
     static constexpr auto InvalidInstanceId{ 0 };
 
-    using SaGameObjectId = AZ::u64;
+    using SaAudioObjectId = AZ::u64;
     static constexpr auto InvalidSaGameObjectId{ INVALID_AUDIO_OBJECT_ID };
 
     struct SaEventId

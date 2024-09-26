@@ -103,7 +103,7 @@ TEST_F(BaseTestFixture, InitializeAudioImpl_ActivateInvalidTriggerUsingValidImpl
         impl.Initialize();
 
         SteamAudio::SATLAudioObjectData_steamaudio objData{
-            SteamAudio::SaGameObjectId{ AZ::Entity::MakeId() }, false
+            SteamAudio::SaAudioObjectId{ AZ::Entity::MakeId() }, false
         };
 
         SteamAudio::SATLTriggerImplData_steamaudio const triggerData{};
@@ -193,7 +193,7 @@ TEST_F(AudioImplTestFixture, SANITY_CHECK)
 TEST_F(AudioImplTestFixture, DISABLED_Initialized_ActivateDoNothingEvent_ReturnsSuccess)
 {
     SteamAudio::SATLAudioObjectData_steamaudio objData{
-        SteamAudio::SaGameObjectId{ AZ::Entity::MakeId() }, false
+        SteamAudio::SaAudioObjectId{ AZ::Entity::MakeId() }, false
     };
 
     SteamAudio::SATLTriggerImplData_steamaudio const triggerData{ AZ::Name{
@@ -219,7 +219,7 @@ TEST_F(
     InitializedAudioImplTestFixture,
     Initialized_CallNewGlobalAudioObjectDataWithValidId_ReturnedObjectHasId)
 {
-    static constexpr SteamAudio::SaGameObjectId ValidObjectId{ 1337 };
+    static constexpr SteamAudio::SaAudioObjectId ValidObjectId{ 1337 };
     auto* const newAudioObject{ static_cast<SteamAudio::SATLAudioObjectData_steamaudio*>(
         GetAudioImpl().NewGlobalAudioObjectData(ValidObjectId)) };
 
@@ -232,7 +232,7 @@ TEST_F(
 TEST_F(
     InitializedAudioImplTestFixture, Initialized_CallNewAudioObjectDataWithValidId_GetIdReturnsId)
 {
-    static constexpr SteamAudio::SaGameObjectId ValidObjectId{ 2 };
+    static constexpr SteamAudio::SaAudioObjectId ValidObjectId{ 2 };
     auto* const newAudioObject{ static_cast<SteamAudio::SATLAudioObjectData_steamaudio*>(
         GetAudioImpl().NewAudioObjectData(ValidObjectId)) };
 

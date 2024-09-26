@@ -23,7 +23,7 @@ namespace SteamAudio
     {
         static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
         static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::ById;
-        using BusIdType = SaGameObjectId;
+        using BusIdType = SaAudioObjectId;
     };
 
     using SaAudioObjectRequestBus = AZ::EBus<SaAudioObjectRequests, SaAudioObjectRequestBusTraits>;
@@ -44,7 +44,7 @@ namespace SteamAudio
     {
         static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
         static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::ById;
-        using BusIdType = SaGameObjectId;
+        using BusIdType = SaAudioObjectId;
     };
 
     using SaAudioObjectRequestBus = AZ::EBus<SaAudioObjectRequests, SaAudioObjectRequestBusTraits>;

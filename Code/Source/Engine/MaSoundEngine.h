@@ -42,7 +42,7 @@ namespace SteamAudio
 
         void Update(float deltaTime);
 
-        auto RegisterAudioObject(SaGameObjectId const& /*audioObject*/)
+        auto RegisterAudioObject(SaAudioObjectId const& /*audioObject*/)
             -> EngineNullOutcome override;
 
         auto ReportEvent(StartEventData const&) -> SaEventInstanceId override;
@@ -55,8 +55,8 @@ namespace SteamAudio
         void LoadEventAssets();
         void LoadSounds();
 
-        void ActivateEvent(SaGameObjectId, AZ::Name);
-        void ActivateEvent(SaGameObjectId, AZ::Data::AssetId);
+        void ActivateEvent(SaAudioObjectId, AZ::Name);
+        void ActivateEvent(SaAudioObjectId, AZ::Data::AssetId);
 
     private:
         IPLContextSettings m_contextSettings{};
@@ -68,7 +68,7 @@ namespace SteamAudio
             AZStd::hash<KeyType>,
             AZStd::equal_to<KeyType>,
             Audio::AudioImplStdAllocator>;
-        GameObjectMap<SaGameObjectId, SaAudioObject> m_registeredObjects{};
+        GameObjectMap<SaAudioObjectId, SaAudioObject> m_registeredObjects{};
 
         AZStd::vector<AZStd::unique_ptr<SaRegisteredEvent>> m_registeredEvents{};
 

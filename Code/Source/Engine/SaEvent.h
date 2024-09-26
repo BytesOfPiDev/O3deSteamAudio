@@ -19,14 +19,14 @@ namespace SteamAudio
         struct EventConfig
         {
             AZ::Data::AssetId m_eventAssetId{};
-            SaGameObjectId m_objectId{};
+            SaAudioObjectId m_objectId{};
         };
 
-        static constexpr auto EmptyEventTask = [](SaGameObjectId) -> void
+        static constexpr auto EmptyEventTask = [](SaAudioObjectId) -> void
         {
         };
 
-        using EventFunc = AZStd::function<void(SaGameObjectId)>;
+        using EventFunc = AZStd::function<void(SaAudioObjectId)>;
 
         SaEvent() = delete;
         /// Configures itself based on the given SaEventAsset

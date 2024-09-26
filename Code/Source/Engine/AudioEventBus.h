@@ -15,7 +15,7 @@ namespace SteamAudio
         virtual ~SaEventInstanceRequests() = default;
 
         virtual void StopEvent() = 0;
-        virtual auto GetParentAudioObject() -> SaGameObjectId = 0;
+        virtual auto GetParentAudioObject() -> SaAudioObjectId = 0;
     };
 
     struct SaEventInstanceRequestBusTraits : AZ::EBusTraits
@@ -36,8 +36,8 @@ namespace SteamAudio
         AudioEventNotifications() = default;
         virtual ~AudioEventNotifications() = default;
 
-        virtual void OnStart(SaGameObjectId) = 0;
-        virtual void OnStop(SaGameObjectId) = 0;
+        virtual void OnStart(SaAudioObjectId) = 0;
+        virtual void OnStop(SaAudioObjectId) = 0;
     };
 
     struct AudioEventNotificationBusTraits : AZ::EBusTraits

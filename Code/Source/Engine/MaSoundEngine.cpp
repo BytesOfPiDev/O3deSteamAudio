@@ -372,7 +372,7 @@ namespace SteamAudio
     {
     }
 
-    auto MaSoundEngine::RegisterAudioObject(SaGameObjectId const& objectId) -> EngineNullOutcome
+    auto MaSoundEngine::RegisterAudioObject(SaAudioObjectId const& objectId) -> EngineNullOutcome
     {
         m_registeredObjects.insert({ objectId, aznew SaAudioObject{ objectId } });
 
