@@ -11,7 +11,10 @@ namespace SteamAudio
     class SteamAudioRequests
     {
     public:
+        AZ_DISABLE_COPY_MOVE(SteamAudioRequests);
         AZ_RTTI(SteamAudioRequests, SteamAudioRequestsTypeId);
+
+        SteamAudioRequests() = default;
         virtual ~SteamAudioRequests() = default;
         // Put your public methods here
     };

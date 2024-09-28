@@ -11,9 +11,6 @@ set(FILES
     Source/Engine/AudioInput/WavParser.cpp
     Source/Engine/AudioInput/WavParser.h
 
-    Source/Engine/Tasks/Task.cpp
-    Source/Engine/Tasks/Task.h
-
     Source/Engine/ATLEntities_steamaudio.h
     Source/Engine/AudioEventBus.h
     Source/Engine/AudioSource.cpp
@@ -49,6 +46,13 @@ set(FILES
     Source/Engine/SoundBankAssetHandler.h
     Source/Engine/SoundConfig.cpp
     Source/Engine/SoundConfig.h
+    Source/Engine/SaSoundSource.cpp
+    Source/Engine/SaSoundSource.h
+    Source/Engine/SaSoundSourceAsset.cpp
+    Source/Engine/SaSoundSourceAsset.h
+    Source/Engine/SaSoundSourceAssetHandler.cpp
+    Source/Engine/SaSoundSourceAssetHandler.h
+    Source/Engine/SaSoundSourceBus.h
     Source/Engine/SoundSourceLoader.cpp
     Source/Engine/SoundSourceLoader.h
 

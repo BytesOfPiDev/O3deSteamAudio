@@ -8,6 +8,7 @@
 #include "AzFramework/IO/LocalFileIO.h"
 
 #include "Engine/SaEventAsset.h"
+#include "Engine/SaEventAssetHandler.h"
 #include "Engine/SaSoundAsset.h"
 
 class BaseTestFixture
@@ -29,6 +30,6 @@ private:
     AZ::IO::FileIOBase* m_prevFileIo{};
     AZStd::unique_ptr<AZ::IO::LocalFileIO> m_fileIo{};
 
-    AZStd::unique_ptr<SteamAudio::SaEventAssetGenericHandler> m_audioEventAssetHandler{};
+    AZStd::unique_ptr<SteamAudio::SaEventAssetHandler> m_audioEventAssetHandler{};
     AZStd::unique_ptr<SteamAudio::SaSoundAssetGenericHandler> m_soundAssetHandler{};
 };

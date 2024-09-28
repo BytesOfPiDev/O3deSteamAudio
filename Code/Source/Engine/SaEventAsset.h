@@ -1,12 +1,10 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
-#include "AzCore/PlatformDef.h"
-#include "AzFramework/Asset/GenericAssetHandler.h"
 
 #include "Engine/Id.h"
 #include "Engine/SaEvent.h"
-#include "Engine/Tasks/Task.h"
+#include "Engine/SaSoundSourceAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
 extern "C" {
@@ -17,8 +15,11 @@ namespace SteamAudio
 {
     using AudioEventName = AZStd::string;
 
+    class SaEventAssetHandler;
     class SaEventAsset : public AZ::Data::AssetData
     {
+        friend SaEventAssetHandler;
+
     public:
         AZ_RTTI_WITH_NAME(SaEventAsset, "SaEventAsset", SaEventAssetTypeId, AZ::Data::AssetData);
         AZ_CLASS_ALLOCATOR(SaEventAsset, Audio::AudioImplAllocator);
@@ -27,7 +28,7 @@ namespace SteamAudio
 
         friend class MiniAudioEngine;
 
-        static constexpr auto CurrentVersion = 6u;
+        static constexpr auto CurrentVersion = 7u;
 
         static constexpr auto Extension{ "saevent" };
         static constexpr auto ExtensionWildcard{ "*.saevent" };
@@ -82,9 +83,14 @@ namespace SteamAudio
             m_setupFunc = AZStd::move(setupFunc);
         }
 
-        [[nodiscard]] auto GetTasksDefinitions() const -> AZStd::vector<TaskDefinition>
+        [[nodiscard]] auto GetSoundSourceAssets() const -> AZStd::vector<SaSoundSourceAssetPtr>
         {
-            return m_tasks;
+            return m_soundSources;
+        }
+
+        [[nodiscard]] auto GetSoundSourceAssets() -> AZStd::vector<SaSoundSourceAssetPtr>
+        {
+            return m_soundSources;
         }
 
     protected:
@@ -94,13 +100,11 @@ namespace SteamAudio
         SaEventId m_eventId{};
         AudioEventName m_name{};
         SetupFunc m_setupFunc{};
-        AZStd::vector<TaskDefinition> m_tasks{};
+        AZStd::vector<SaSoundSourceAssetPtr> m_soundSources{};
     };
 
     using SaEventDataPtr = AZ::Data::Asset<SaEventAsset>;
     using AudioEventAssets = AZStd::vector<SaEventDataPtr>;
-
-    using SaEventAssetGenericHandler = AzFramework::GenericAssetHandler<SaEventAsset>;
 
     class RegisteredEventRequests
     {

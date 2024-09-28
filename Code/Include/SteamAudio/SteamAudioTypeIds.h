@@ -30,6 +30,7 @@ namespace SteamAudio
 
     static constexpr auto ISoundEngineTypeId{ "{51A10EAC-C03B-4583-9594-C25CC8A4755D}" };
     static constexpr auto SoundTaskConfigTypeId{ "{FC1ECB5C-C057-4B87-BEEE-97DC538F01AA}" };
+    static constexpr auto SoundConfigDataTypeId{ "{10fc12f6-e2cd-4b8b-b8d6-0aa44ca0de82}" };
     static constexpr auto TaskDefinitionTypeId{ "{A6F92268-DA9B-4C4E-B71F-B694F18A68B5}" };
 
     static constexpr auto EditorSaEventAssetHandlerTypeId{

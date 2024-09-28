@@ -293,14 +293,7 @@ namespace SteamAudio
             auto result{ StartEventData{} };
             result.m_gameObjectId = objectId;
             result.m_eventId = implTriggerData->GetImplEventId();
-            result.m_eventName = implTriggerData->GetEventName();
 
-            AZLOG(
-                LOG_asi_steamaudio,
-                "StartEventData { objId: %llu | eventId: %llu | eventName: %s }",
-                result.m_gameObjectId,
-                result.m_eventId.GetValue(),
-                result.m_eventName.GetCStr());
             return result;
         }();
 

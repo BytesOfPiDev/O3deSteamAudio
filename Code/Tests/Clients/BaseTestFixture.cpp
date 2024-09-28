@@ -12,7 +12,7 @@
 
 #include "Engine/Configuration.h"
 #include "Engine/SaEventAsset.h"
-#include "Engine/Tasks/Task.h"
+#include "Engine/SaEventAssetHandler.h"
 
 class BaseApp : public AZ::ComponentApplication
 {
@@ -51,7 +51,6 @@ void BaseTestFixture::SetUp()
     m_systemEntity = m_app->Create(appDesc, startupParams);
 
     SteamAudio::SaEventAsset::Reflect(m_app->GetSerializeContext());
-    SteamAudio::TaskDefinition::Reflect(m_app->GetSerializeContext());
     m_systemEntity->Init();
     m_systemEntity->Activate();
 
@@ -75,8 +74,7 @@ void BaseTestFixture::SetUp()
     AZ::IO::FileIOBase::GetInstance()->SetAlias(
         SteamAudio::EventsAlias, testEventsPath.value().c_str());
 
-    m_audioEventAssetHandler = AZStd::make_unique<SteamAudio::SaEventAssetGenericHandler>(
-        "SaEventAsset", "Sound", SteamAudio::SaEventAsset::Extension);
+    m_audioEventAssetHandler = AZStd::make_unique<SteamAudio::SaEventAssetHandler>();
     m_soundAssetHandler = AZStd::make_unique<SteamAudio::SaSoundAssetGenericHandler>(
         "SteamAudio Sound Asset",
         SteamAudio::SaSoundAsset::AssetGroup,

@@ -15,6 +15,11 @@
                 "RC sabank": {
                     "glob": "*.sabank",
                     "params": "copy"
+                },
+                "RC sasoundsource": {
+                    "glob": "*.sasoundsource",
+                    "params": "copy",
+                    "productAssetType": "{CD038A39-CF2C-4A69-9877-DC7EFE284F25}"
                 }
             }
         }

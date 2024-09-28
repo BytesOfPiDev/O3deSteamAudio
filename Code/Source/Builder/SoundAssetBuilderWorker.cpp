@@ -37,7 +37,7 @@ namespace SteamAudio
     {
         AZStd::string const& fromFile = request.m_fullPath;
 
-        AZ::Data::Asset<SaSoundAsset> soundAsset;
+        auto soundAsset{ AZ::Data::Asset<SaSoundAsset>{ AZ::Data::AssetLoadBehavior::PreLoad } };
         soundAsset.Create(AZ::Data::AssetId(AZ::Uuid::CreateRandom()));
 
         auto assetDataStream = AZStd::make_shared<AZ::Data::AssetDataStream>();
@@ -67,7 +67,7 @@ namespace SteamAudio
                 return;
             }
 
-            soundAsset->m_data.swap(fileBuffer);
+            soundAsset->m_audioData.swap(fileBuffer);
         }
 
         AZStd::string filename;
@@ -103,12 +103,11 @@ namespace SteamAudio
         {
             AZ_Error("SoundAssetBuilder", false, "Failed to output product dependencies.");
             response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Failed;
+            return;
         }
-        else
-        {
-            response.m_outputProducts.push_back(AZStd::move(soundJobProduct));
-            response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
-        }
+
+        response.m_outputProducts.push_back(AZStd::move(soundJobProduct));
+        response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
     }
 
 }  // namespace SteamAudio

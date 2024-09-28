@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Engine/Sound.h"
+#include "Engine/SaSoundSource.h"
+
 namespace SteamAudio
 {
     class SoundSourceLoader
@@ -9,6 +10,6 @@ namespace SteamAudio
         void Load();
 
     private:
-        AZStd::vector<SoundSource> m_sources{};
+        AZStd::vector<AZStd::unique_ptr<SoundSource>> m_sources{};
     };
 }  // namespace SteamAudio

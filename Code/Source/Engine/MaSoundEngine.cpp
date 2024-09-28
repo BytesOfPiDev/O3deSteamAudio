@@ -10,7 +10,6 @@
 #include "AzCore/Module/Environment.h"
 #include "AzCore/Outcome/Outcome.h"
 #include "AzCore/PlatformDef.h"
-#include "AzFramework/Entity/GameEntityContextBus.h"
 
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
@@ -23,16 +22,16 @@
 #include "IAudioInterfacesCommonData.h"
 
 #define MINIAUDIO_IMPLEMENTATION
-#include "SteamAudio/MiniAudio.h"
+#include "miniaudio.h"
 
 namespace SteamAudio
 {
-    static constexpr auto HelloWorldAssetId{ "959961C5-372D-4434-B836-202136CE8006" };
-    static constexpr auto MuteAllAssetId{ "6CA6189A-7A36-4FCA-A801-BDF5911085BC" };
-    static constexpr auto UnmuteAllAssetId{ "57D99443-73BD-49B3-AE9D-7135A64D92D9" };
-    static constexpr auto GetFocusAssetId{ "70DE9CF7-8A00-40FD-B4DD-063B863B2626" };
-    static constexpr auto LoseFocusAssetId{ "5542942A-848F-47A1-8B8D-3376914A6855" };
-    static constexpr auto DoNothingAssetId{ "68C7A00D-4A9F-4AC5-A5B8-C481B9A60E38" };
+    static constexpr auto HelloWorldAssetId{ "{959961C5-372D-4434-B836-202136CE8006}" };
+    static constexpr auto MuteAllAssetId{ "{6CA6189A-7A36-4FCA-A801-BDF5911085BC}" };
+    static constexpr auto UnmuteAllAssetId{ "{57D99443-73BD-49B3-AE9D-7135A64D92D9}" };
+    static constexpr auto GetFocusAssetId{ "{70DE9CF7-8A00-40FD-B4DD-063B863B2626}" };
+    static constexpr auto LoseFocusAssetId{ "{5542942A-848F-47A1-8B8D-3376914A6855}" };
+    static constexpr auto DoNothingAssetId{ "{68C7A00D-4A9F-4AC5-A5B8-C481B9A60E38}" };
 
     static AZ::EnvironmentVariable<ma_engine*> s_maEngine{};  // NOLINT
 
@@ -62,6 +61,7 @@ namespace SteamAudio
                 "Failed to initialize miniaudio: %s", outcome.GetError().c_str()));
         }
 
+        m_soundLoader.Load();
         LoadNativeEvents();
         LoadEventAssets();
 
@@ -250,12 +250,11 @@ namespace SteamAudio
                     continue;
                 }
 
-                AZLOG_ERROR(
-                    "Adding audio event [Name: %s | Id: %llu",
+                m_registeredEvents.push_back(AZStd::make_unique<SaRegisteredEvent>(asset));
+                AZLOG_INFO(
+                    "Sound engine registered event '%s' w/ id '%llu'",
                     asset->GetEventName().c_str(),
                     static_cast<AZ::u64>(asset->GetEventId().GetValue()));
-
-                m_registeredEvents.push_back(AZStd::make_unique<SaRegisteredEvent>(asset));
 
                 asset = {};
             }
@@ -264,9 +263,9 @@ namespace SteamAudio
 
     auto MaSoundEngine::ReportEvent(StartEventData const& startEventData) -> SaEventInstanceId
     {
-        if (!startEventData.m_eventId.IsValid())
+        if (!startEventData.IsValid())
         {
-            AZLOG_ERROR("Report event failed because the event id is invalid.");
+            AZLOG_ERROR("Report event failed - start event data is not valid");
             return InvalidEventInstanceId;
         }
 
@@ -291,8 +290,7 @@ namespace SteamAudio
         if (eventInstanceId == InvalidEventInstanceId)
         {
             AZLOG_ERROR(
-                "ReportEvent failed - unable to push event '%s|%llu' to audio object '%llu'",
-                startEventData.m_eventName.GetCStr(),
+                "Failed to report event '%llu' - unable to push event to audio object '%llu'",
                 startEventData.m_eventId.GetValue(),
                 startEventData.m_gameObjectId);
             return SaEventInstanceId{ InvalidInstanceId };
@@ -300,8 +298,7 @@ namespace SteamAudio
 
         AZLOG(
             LOG_MaSoundEngine,
-            "Report event succeeded. Name: %s | Id: %llu",
-            startEventData.m_eventName.GetCStr(),
+            "Successfully reported event '%llu'",
             startEventData.m_eventId.GetValue());
 
         return eventInstanceId;
@@ -378,10 +375,5 @@ namespace SteamAudio
 
         AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Not implemented.");
         return AZ::Failure("Not implemented.");
-    }
-
-    void MaSoundEngine::LoadSounds()
-    {
-        m_soundLoader.Load();
     }
 }  // namespace SteamAudio

@@ -8,6 +8,7 @@
 #include "Engine/Id.h"
 #include "Engine/MaSoundEngine.h"
 #include "Engine/Parameters.h"
+#include "Engine/SaAudioObjectBus.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystem.h"
 
@@ -40,7 +41,7 @@ TEST_F(SoundEngineTestFixture, Initialized_ReportEvent_PassNonExistentEventName_
 
     AZ_TEST_START_TRACE_SUPPRESSION;
     auto const eventInstanceId{ GetEngine().ReportEvent(nonExistentStartEventData) };
-    AZ_TEST_STOP_TRACE_SUPPRESSION(1);
+    AZ_TEST_STOP_TRACE_SUPPRESSION(2);
 
     EXPECT_EQ(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }
@@ -52,7 +53,7 @@ TEST_F(SoundEngineNativeEvents, DoNothing_ReportEvent_ReturnsSuccess)
 
     auto const doNothingStartEventData{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::DoNothingEventName),
-        SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
+        SteamAudio::GlobalSaGameObjectId } };
 
     auto const eventInstanceId{ GetSoundEngine().ReportEvent(doNothingStartEventData) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
@@ -65,7 +66,7 @@ TEST_F(SoundEngineNativeEvents, MuteAll_ReportEvent_ReturnsSuccess)
 
     auto const muteAllStartEventName{ SteamAudio::StartEventData{
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::MuteAllEventName),
-        SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
+        SteamAudio::GlobalSaGameObjectId } };
 
     auto const eventInstanceId{ GetSoundEngine().ReportEvent(muteAllStartEventName) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);

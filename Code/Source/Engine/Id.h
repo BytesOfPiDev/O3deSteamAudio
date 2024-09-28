@@ -72,6 +72,7 @@ namespace SteamAudio
 
     using SaAudioObjectId = AZ::u64;
     static constexpr auto InvalidSaGameObjectId{ INVALID_AUDIO_OBJECT_ID };
+    static constexpr auto GlobalSaGameObjectId{ GLOBAL_AUDIO_OBJECT_ID };
 
     struct SaEventId
     {

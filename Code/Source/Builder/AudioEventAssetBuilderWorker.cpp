@@ -220,30 +220,30 @@ namespace SteamAudio
         AudioEventXmlParser xmlParser{ AZStd::move(docPtr) };
         docPtr = nullptr;
 
-        AZ::Data::Asset<SaEventAsset> event{};
-        event.Create(AZ::Uuid::CreateRandom());
-        xmlParser.WriteIntoAsset(event.Get());
+        AZ::Data::Asset<SaEventAsset> eventAsset{ AZ::Data::AssetLoadBehavior::PreLoad };
+        eventAsset.Create(AZ::Uuid::CreateRandom());
+        xmlParser.WriteIntoAsset(eventAsset.Get());
 
         AZ::IO::Path const absProductPath =
-            [absSourcePath, &request, &event]() -> decltype(absProductPath)
+            [absSourcePath, &request, &eventAsset]() -> decltype(absProductPath)
         {
             AZ::IO::Path path{ request.m_tempDirPath };
             path /= request.m_sourceFile;
-            path.ReplaceFilename(event->GetEventName().c_str());
+            path.ReplaceFilename(eventAsset->GetEventName().c_str());
             path.ReplaceExtension(SaEventAsset::Extension);
             return path;
         }();
 
-        event->SetEventName(absProductPath.Filename().Stem().String());
+        eventAsset->SetEventName(absProductPath.Filename().Stem().String());
 
         AZ_Info(
             AssetBuilderSDK::InfoWindow,
-            "Saving asset. Name: %s | Id: %zu",
-            event->GetEventName().c_str(),
-            event->GetEventId());
+            "Saving asset w/ event name '%s', id '%zu'",
+            eventAsset->GetEventName().c_str(),
+            eventAsset->GetEventId());
 
         bool const fileSaved{ AZ::Utils::SaveObjectToFile(
-            absProductPath.c_str(), AZ::DataStream::ST_JSON, event.Get()) };
+            absProductPath.c_str(), AZ::DataStream::ST_JSON, eventAsset.Get()) };
 
         if (!fileSaved)
         {
@@ -257,12 +257,19 @@ namespace SteamAudio
             return;
         }
 
-        AssetBuilderSDK::JobProduct jobProduct{};
-        jobProduct.m_productFileName = absProductPath.String();
-        jobProduct.m_productAssetType = SaEventAsset::TYPEINFO_Uuid();
-        jobProduct.m_productSubID = SaEventAsset::AssetSubId;
+        AssetBuilderSDK::JobProduct eventAssetProduct{};
+        eventAssetProduct.m_productFileName = absProductPath.String();
+        eventAssetProduct.m_productAssetType = SaEventAsset::TYPEINFO_Uuid();
+        eventAssetProduct.m_productSubID = SaEventAsset::AssetSubId;
 
-        response.m_outputProducts.emplace_back(AZStd::move(jobProduct));
+        AssetBuilderSDK::OutputObject<SaEventAsset>(
+            eventAsset.Get(),
+            absProductPath.String().c_str(),
+            AZ::AzTypeInfo<SaEventAsset>::Uuid(),
+            SaEventAsset::AssetSubId,
+            eventAssetProduct);
+
+        response.m_outputProducts.emplace_back(AZStd::move(eventAssetProduct));
         response.m_resultCode = AssetBuilderSDK::ProcessJobResult_Success;
     }
 

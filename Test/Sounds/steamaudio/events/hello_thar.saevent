@@ -1,0 +1,35 @@
+<ObjectStream version="3">
+	<Class name="SaEventAsset" version="5" type="{42A942C7-E634-4D1C-A4D2-DB894A035230}">
+		<Class name="AssetData" field="BaseClass1" version="1" type="{AF3F7D32-1536-422A-89F3-A11E1F5B5A9C}"/>
+		<Class name="AZStd::string" field="Name" value="hello_thar" type="{03AAAB3F-5C47-5A66-9EBC-D5FA4DB353C9}"/>
+		<Class name="AZ::u64" field="EventId" value="3750328652" type="{D6597933-47CD-4FC8-B911-63F3E2B0993A}"/>
+		<Class name="AZStd::vector&lt;EventTask, allocator&gt;" field="Tasks" type="{496B2EEB-9EBF-5142-9405-960AC8F4A664}">
+			<Class name="EventTask" field="element" type="{A6F92268-DA9B-4C4E-B71F-B694F18A68B5}">
+				<Class name="AZStd::any" field="Config" type="{03924488-C7F4-4D6D-948B-ABC2D1AE2FD3}">
+					<Class name="SoundTaskConfig" field="m_data" version="2" type="{FC1ECB5C-C057-4B87-BEEE-97DC538F01AA}">
+						<Class name="Asset&lt;SteamAudioSoundAsset&gt;" field="Asset" value="id={103E3430-DBEB-5E46-8E8E-EBFF6BA8FEBE}:1,type={C94B5C4C-EBCA-4203-9FE4-EFCFCE707D28},hint={sounds/steamaudio/banks/dlg/01_welcome_01.wav.sasound},loadBehavior=1" version="3" type="{648382C1-E7BC-59E1-8806-DCDC34F925DA}"/>
+						<Class name="float" field="Volume" value="1.0000000" type="{EA2C3E90-AFBE-44D4-A90D-FAAF79BAF93D}"/>
+						<Class name="bool" field="Loop" value="true" type="{A0CA880C-AFE4-43CB-926C-59AC48496112}"/>
+					</Class>
+				</Class>
+				<Class name="TaskAction" field="Action" value="0" type="{45735319-B512-475E-BF13-4F72DC58A443}"/>
+			</Class>
+		</Class>
+		<Class name="AssetData" field="BaseClass1" version="1" type="{AF3F7D32-1536-422A-89F3-A11E1F5B5A9C}"/>
+		<Class name="AZStd::string" field="Name" value="hello_thar" type="{03AAAB3F-5C47-5A66-9EBC-D5FA4DB353C9}"/>
+		<Class name="AZ::u64" field="EventId" value="3750328652" type="{D6597933-47CD-4FC8-B911-63F3E2B0993A}"/>
+		<Class name="AZStd::vector&lt;EventTask, allocator&gt;" field="Tasks" type="{496B2EEB-9EBF-5142-9405-960AC8F4A664}">
+			<Class name="EventTask" field="element" type="{A6F92268-DA9B-4C4E-B71F-B694F18A68B5}">
+				<Class name="AZStd::any" field="Config" type="{03924488-C7F4-4D6D-948B-ABC2D1AE2FD3}">
+					<Class name="SoundTaskConfig" field="m_data" version="2" type="{FC1ECB5C-C057-4B87-BEEE-97DC538F01AA}">
+						<Class name="Asset&lt;SteamAudioSoundAsset&gt;" field="Asset" value="id={103E3430-DBEB-5E46-8E8E-EBFF6BA8FEBE}:1,type={C94B5C4C-EBCA-4203-9FE4-EFCFCE707D28},hint={sounds/steamaudio/banks/dlg/01_welcome_01.wav.sasound},loadBehavior=1" version="3" type="{648382C1-E7BC-59E1-8806-DCDC34F925DA}"/>
+						<Class name="float" field="Volume" value="1.0000000" type="{EA2C3E90-AFBE-44D4-A90D-FAAF79BAF93D}"/>
+						<Class name="bool" field="Loop" value="true" type="{A0CA880C-AFE4-43CB-926C-59AC48496112}"/>
+					</Class>
+				</Class>
+				<Class name="TaskAction" field="Action" value="0" type="{45735319-B512-475E-BF13-4F72DC58A443}"/>
+			</Class>
+		</Class>
+	</Class>
+</ObjectStream>
+

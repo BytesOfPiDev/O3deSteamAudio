@@ -67,9 +67,8 @@ namespace SteamAudio
             return InvalidEventInstanceId;
         }
 
-        auto const& event{ m_events.emplace_back(eventAsset.GetId()) };
-        AZLOG_ERROR(
-            "AudioObject::PushEvent w/ InstanceId: '%llu'", event.GetEventInstanceId().m_value);
+        auto& event{ m_events.emplace_back(eventAsset.GetId()) };
+        event.StartEvent();
         return event.GetEventInstanceId();
     }
 

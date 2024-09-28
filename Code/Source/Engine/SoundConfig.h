@@ -4,14 +4,13 @@
 #include "AzCore/RTTI/ReflectContext.h"
 #include "AzCore/RTTI/TypeInfoSimple.h"
 
-#include "Engine/SaSoundAsset.h"
 #include "SteamAudio/SteamAudioTypeIds.h"
 
 namespace SteamAudio
 {
-    struct SoundTaskConfig
+    struct SoundConfig
     {
-        AZ_TYPE_INFO(SoundTaskConfig, SoundTaskConfigTypeId);
+        AZ_TYPE_INFO(SoundConfig, SoundConfigDataTypeId);
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -19,9 +18,6 @@ namespace SteamAudio
         static constexpr auto VolumeMin = 0.0f;
         static constexpr auto VolumeStep = 0.1f;
 
-        void AssetChanged();
-
-        AZ::Data::Asset<SaSoundAsset> m_asset{ AZ::Data::AssetLoadBehavior::PreLoad };
         float m_volume{ 1.0f };
         bool m_loop{ false };
     };

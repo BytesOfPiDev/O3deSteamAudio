@@ -1,78 +1,20 @@
 #include "Engine/SaEvent.h"
 
 #include "AzCore/Console/ILogger.h"
-#include "AzCore/PlatformDef.h"
+#include "Engine/SaSoundSourceAsset.h"
 #include "IAudioInterfacesCommonData.h"
 
 #include "Engine/Id.h"
 #include "Engine/SaEventAsset.h"
 #include "Engine/Sound.h"
-#include "Engine/SoundConfig.h"
-#include "Engine/Tasks/Task.h"
-#include "SteamAudio/MiniAudio.h"
-#include "SteamAudio/Util.h"
 
 namespace SteamAudio
 {
-
     auto GetNextInstanceId()
     {
         AZStd::atomic<Audio::TAudioTriggerInstanceID> nextInstanceId{ 1 };
         return nextInstanceId++;
     }
-
-    struct SoundEventTask
-    {
-        AZ_DISABLE_COPY_MOVE(SoundEventTask);
-        AZ_TYPE_INFO_WITH_NAME(SoundEventTask, "SoundTask", "3C0EBC61-6BB8-401B-8F1E-C87C9194B375");
-
-        SoundEventTask() = default;
-
-        SoundEventTask(SoundTaskConfig const& config)
-            : m_source{ config.m_asset,
-                        AZ::Name{ AZ::Uuid::CreateRandom().ToFixedString().c_str() } }
-        {
-            auto const& result{ ma_sound_init_from_file(
-                Util::GetMaEngine(), m_source.GetName().GetCStr(), 0, nullptr, nullptr, &m_sound) };
-
-            AZ_Error(
-                AZ_FUNCTION_SIGNATURE,
-                result == MA_SUCCESS,
-                "'%s' is not a registered sound.",
-                m_source.GetName().GetCStr());
-            if (result != MA_SUCCESS)
-            {
-                return;
-            }
-
-            ma_sound_set_volume(&m_sound, config.m_volume);
-            ma_sound_set_looping(&m_sound, config.m_loop);
-        };
-
-        ~SoundEventTask() = default;
-
-        void StartTask()
-        {
-            if (!ma_sound_get_data_source(&m_sound))
-            {
-                return;
-            }
-
-            ma_sound_start(&m_sound);
-        }
-
-        void StopTask()
-        {
-            if (!ma_sound_get_data_source(&m_sound))
-            {
-                return;
-            }
-            ma_sound_stop(&m_sound);
-        }
-
-        ma_sound m_sound{};
-        SoundSource m_source{};
-    };
 
     SaEvent::SaEvent(AZ::Data::AssetId eventAssetId)
         : m_eventState(SaAudioEventState::eAES_LOADING)
@@ -91,23 +33,46 @@ namespace SteamAudio
             return;
         }
 
+        if (eventAsset->GetSoundSourceAssets().empty())
+        {
+            AZLOG_WARN(
+                "SaEvent creation - event '%s' has no sound sources", eventAsset.GetHint().c_str());
+            return;
+        }
+
         AZStd::ranges::for_each(
-            eventAsset->GetTasksDefinitions(),
-            [this](TaskDefinition& taskDef)
+            eventAsset->GetSoundSourceAssets(),
+            [this](SaSoundSourceAssetPtr const& soundSourceAsset)
             {
-                [[maybe_unused]] auto const& config = taskDef.GetConfig();
-                AZ_Error("SaEvent", false, "TESTING: Got sound task config!");
+                if (!soundSourceAsset.IsReady())
+                {
+                    AZLOG_ERROR(
+                        "SaEvent received a task with bad sound source '%s'",
+                        soundSourceAsset.GetHint().c_str());
+                    return;
+                }
 
-                AZ::Name randomId{ AZ::Uuid::CreateRandom().ToFixedString().c_str() };
-                m_soundSources.emplace_back(taskDef.GetConfig().m_asset, randomId);
-                m_soundInstances.emplace_back(randomId, true);
-
-                m_tasks.emplace_back(
-                    [](SaAudioObjectId)
-                    {
-                    });
+                m_soundInstances.emplace_back(
+                    AZStd::make_unique<SoundInstance>(soundSourceAsset->GetSoundSourceName()));
             });
         m_eventState = SaAudioEventState::eAES_NONE;
+    }
+
+    SaEvent::~SaEvent()
+    {
+        AZStd::ranges::for_each(
+            m_soundInstances,
+            [](auto& soundInstance)
+            {
+                soundInstance->Stop();
+            });
+
+        if (m_eventState != Audio::eAES_NONE)
+        {
+            StopEvent();
+        }
+
+        m_soundInstances.clear();
     }
 
     void SaEvent::Update(float)
@@ -127,6 +92,23 @@ namespace SteamAudio
         }
 
         m_eventState = SaAudioEventState::eAES_PLAYING;
+        if (m_soundInstances.empty())
+        {
+            AZLOG_WARN(
+                "SaEvent [%llu] - started, but no sound instances to play",
+                static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
+            return;
+        }
+
+        for (auto& soundInstance : m_soundInstances)
+        {
+            soundInstance->Start();
+        }
+
+        AZLOG(
+            LOG_SaEvent,
+            "SaEvent ['%llu'] - started",
+            static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
     }
 
     void SaEvent::StopEvent()
@@ -137,13 +119,17 @@ namespace SteamAudio
         }
 
         m_eventState = SaAudioEventState::eAES_UNLOADING;
-        AZLOG(
-            LOG_SaEvent,
-            "SaEvent::Stop(objectId: %llu)",
-            static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
 
-        m_soundInstances.clear();
+        for (auto& soundInstance : m_soundInstances)
+        {
+            soundInstance->Stop();
+        }
 
         m_eventState = SaAudioEventState::eAES_NONE;
+
+        AZLOG(
+            LOG_SaEvent,
+            "SaEvent ['%llu'] stopped",
+            static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
     };
 }  // namespace SteamAudio

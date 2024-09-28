@@ -64,7 +64,7 @@ namespace SteamAudio
         static constexpr auto AssetSubId = 1u;
         static constexpr auto ProductExtension{ "sasound" };
 
-        AZStd::vector<AZ::u8> m_data;
+        AZStd::vector<AZ::u8> m_audioData;
     };
 
     using SaSoundAssetGenericHandler = AzFramework::GenericAssetHandler<SaSoundAsset>;

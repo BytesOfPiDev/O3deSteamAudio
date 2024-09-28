@@ -22,7 +22,7 @@ namespace SteamAudio
                 ->Attribute(AZ::Edit::Attributes::EnableForAssetEditor, true)
                 ->Field("Name", &SaEventAsset::m_name)
                 ->Field("EventId", &SaEventAsset::m_eventId)
-                ->Field("Tasks", &SaEventAsset::m_tasks);
+                ->Field("Sounds", &SaEventAsset::m_soundSources);
 
             if (AZ::EditContext* edit = serialize->GetEditContext())
             {
@@ -30,7 +30,10 @@ namespace SteamAudio
                     ->DataElement(AZ::Edit::UIHandlers::Default, &SaEventAsset::m_name, "Name", "")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &SaEventAsset::UpdateId)
                     ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &SaEventAsset::m_tasks, "Tasks", "");
+                        AZ::Edit::UIHandlers::Default,
+                        &SaEventAsset::m_soundSources,
+                        "Sounds to play",
+                        "");
             }
         }
     }

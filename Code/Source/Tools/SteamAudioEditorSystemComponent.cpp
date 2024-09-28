@@ -154,7 +154,7 @@ namespace SteamAudio
             AssetBuilderSDK::AssetBuilderPattern::PatternType::Wildcard));
 
         builderDescriptor.m_busId = azrtti_typeid<AudioEventAssetBuilderWorker>();
-        builderDescriptor.m_version = 2;
+        builderDescriptor.m_version = 3;
         builderDescriptor.m_createJobFunction =
             [ObjectPtr = &m_eventBuilder](auto&& PH1, auto&& PH2)
         {
@@ -186,7 +186,7 @@ namespace SteamAudio
         // Register MiniSound Asset Builder
         AssetBuilderSDK::AssetBuilderDesc materialAssetBuilderDescriptor;
         materialAssetBuilderDescriptor.m_name = "MiniSound Asset Builder";
-        materialAssetBuilderDescriptor.m_version = 3;  // bump this to rebuild all sound files
+        materialAssetBuilderDescriptor.m_version = 4;
         materialAssetBuilderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(
             "*.ogg", AssetBuilderSDK::AssetBuilderPattern::PatternType::Wildcard));
         materialAssetBuilderDescriptor.m_patterns.push_back(AssetBuilderSDK::AssetBuilderPattern(

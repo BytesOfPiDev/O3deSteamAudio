@@ -4,10 +4,17 @@
 
 namespace SteamAudio
 {
-    struct SaEventAssetHandler : public SaEventAssetGenericHandler
+    class SaEventAssetHandler : public AzFramework::GenericAssetHandler<SaEventAsset>
     {
+        using Base = AzFramework::GenericAssetHandler<SaEventAsset>;
+
+    public:
+        AZ_DISABLE_COPY_MOVE(SaEventAssetHandler);
         AZ_RTTI(
             SaEventAssetHandler, SaEventAssetHandlerTypeId, AzFramework::GenericAssetHandlerBase);
+
+        SaEventAssetHandler();
+        ~SaEventAssetHandler() override = default;
 
         void InitAsset(
             AZ::Data::Asset<AZ::Data::AssetData> const& asset,

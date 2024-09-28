@@ -69,6 +69,7 @@ ly_add_target(
             AZ::AzCore
             AZ::AzFramework
             Gem::AudioSystem
+            3rdParty::miniaudio
             3rdParty::SteamAudio
 
 )
@@ -88,6 +89,7 @@ ly_add_target(
     BUILD_DEPENDENCIES
         PUBLIC
             Gem::${gem_name}.API
+            3rdParty::miniaudio
         PRIVATE
             Gem::${gem_name}.Private.Object
 )
@@ -183,8 +185,8 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 Source
         BUILD_DEPENDENCIES
             PUBLIC
-                ${gem_name}.Private.Object
-                ${gem_name}.MiniAudio.API
+                Gem::${gem_name}.Private.Object
+                Gem::${gem_name}.MiniAudio.API
                 AZ::AzFramework
                 AZ::AzCore
                 AZ::AssetBuilderSDK
@@ -192,6 +194,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 Gem::AudioSystem.Editor
                 Gem::AudioSystem.Editor.API
                 Legacy::CryCommon
+                3rdParty::miniaudio
     )
 
   ly_add_target(
@@ -215,7 +218,11 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 Legacy::CryCommon
                 AZ::AzToolsFramework
             PRIVATE
+                Gem::${gem_name}.Private.Object
                 Gem::${gem_name}.Editor.Private.Object
+                3rdParty::miniaudio
+        RUNTIME_DEPENDENCIES
+            3rdParty::miniaudio
     )
 
   # Include the gem name into the Editor Module source file
@@ -246,9 +253,9 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
   o3de_add_variant_dependencies_for_gem_dependencies(GEM_NAME ${gem_name} VARIANTS Tools Builders)
 endif()
 
-################################################################################
+# # # # # # # # # # # #####################################################################
 # Tests
-################################################################################
+# # # # # # # # # # # #####################################################################
 get_property(audiosystem_gem_root GLOBAL PROPERTY "@GEMROOT:AudioSystem@")
 
 # See if globally, tests are supported
@@ -275,6 +282,7 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                     Gem::AudioSystem
                     Gem::${gem_name}.Private.Object
                     Legacy::CryCommon
+                    3rdParty::miniaudio
         )
 
     # Add ${gem_name}.Tests to googletest
@@ -307,6 +315,9 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                         AZ::AzTest
                         AZ::AzToolsFrameworkTestCommon
                         Legacy::CryCommon
+                        3rdParty::miniaudio
+
+
             )
 
       # Add ${gem_name}.Editor.Tests to googletest

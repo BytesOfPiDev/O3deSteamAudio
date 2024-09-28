@@ -11,7 +11,6 @@
 #include "Engine/Id.h"
 #include "Engine/SaRegisteredEvent.h"
 #include "Engine/SoundSourceLoader.h"
-#include "IAudioInterfacesCommonData.h"
 
 extern "C" {
 struct ma_engine;
@@ -53,7 +52,6 @@ namespace SteamAudio
 
         void LoadNativeEvents();
         void LoadEventAssets();
-        void LoadSounds();
 
         void ActivateEvent(SaAudioObjectId, AZ::Name);
         void ActivateEvent(SaAudioObjectId, AZ::Data::AssetId);

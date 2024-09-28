@@ -6,9 +6,13 @@ namespace SteamAudio
 {
     struct StartEventData
     {
+        [[nodiscard]] auto IsValid() const -> bool
+        {
+            return (m_eventId.IsValid()) && (m_gameObjectId != InvalidSaGameObjectId);
+        }
+
         SaEventId m_eventId;
         SaAudioObjectId m_gameObjectId;
-        AZ::Name m_eventName;
     };
 
     struct StopEventData

@@ -35,7 +35,7 @@ namespace SteamAudio
         ///
         /// @param eventAssetId The SaEventAsset to use for configuration
         SaEvent(AZ::Data::AssetId eventAssetId);
-        ~SaEvent() = default;
+        ~SaEvent();
 
         void Update(float);
 
@@ -61,8 +61,7 @@ namespace SteamAudio
         SaAudioEventState m_eventState{};
         SaEventId m_eventId{};
         SaEventInstanceId m_eventInstanceId{};
-        AZStd::vector<SoundSource> m_soundSources{};
-        AZStd::vector<SoundInstance> m_soundInstances{};
+        AZStd::vector<AZStd::unique_ptr<SoundInstance>> m_soundInstances{};
         AZStd::vector<EventFunc> m_tasks{};
     };
 }  // namespace SteamAudio

@@ -6,7 +6,7 @@
 #include "AzCore/Serialization/SerializeContext.h"
 #include "Engine/SaEventAsset.h"
 #include "Engine/SaSoundAsset.h"
-#include "Engine/Tasks/Task.h"
+#include "Engine/SaSoundSourceAsset.h"
 #include "IAudioSystem.h"
 
 #include "Engine/Configuration.h"
@@ -30,19 +30,19 @@ namespace SteamAudio
     {
         auto const banksPath = []()
         {
-            static constexpr auto path{ "@products@/sounds/steamaudio/banks" };
+            static constexpr auto path{ "sounds/steamaudio/banks" };
             return AZ::IO::FileIOBase::GetInstance()->ResolvePath(path).value_or("");
         }();
 
         auto const eventsPath = []()
         {
-            static constexpr auto path{ "@products@/sounds/steamaudio/events" };
+            static constexpr auto path{ "sounds/steamaudio/events" };
             return AZ::IO::FileIOBase::GetInstance()->ResolvePath(path).value_or("");
         }();
 
         auto const projectPath = []()
         {
-            static constexpr auto path{ "@products@/sounds/steamaudio" };
+            static constexpr auto path{ "sounds/steamaudio" };
             return AZ::IO::FileIOBase::GetInstance()->ResolvePath(path).value_or("");
         }();
 
@@ -55,8 +55,9 @@ namespace SteamAudio
 
     void SteamAudioSystemComponent::Reflect(AZ::ReflectContext* context)
     {
-        TaskDefinition::Reflect(context);
+        SoundConfig::Reflect(context);
         SaEventAsset::Reflect(context);
+        SaSoundSourceData::Reflect(context);
 
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -132,14 +133,18 @@ namespace SteamAudio
         m_soundAssetHandler.emplace("SteamAudio Sound", "Sound", SaSoundAsset::ProductExtension);
         m_soundAssetHandler->Register();
 
-        m_eventAssetHandler.emplace("SteamAudio Event", "Sound", SaEventAsset::Extension);
+        m_soundSourceAssetHandler.emplace();
+        m_soundSourceAssetHandler->Register();
+
+        m_eventAssetHandler.emplace();
         m_eventAssetHandler->Register();
     }
 
     void SteamAudioSystemComponent::Deactivate()
     {
-        m_soundAssetHandler->Unregister();
         m_eventAssetHandler->Unregister();
+        m_soundSourceAssetHandler->Unregister();
+        m_soundAssetHandler->Unregister();
 
         if (m_audioSystemImpl.has_value())
         {

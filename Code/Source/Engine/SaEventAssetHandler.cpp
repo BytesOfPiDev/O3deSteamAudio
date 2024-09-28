@@ -1,23 +1,29 @@
 #include "Engine/SaEventAssetHandler.h"
 
 #include "Engine/SaEventAsset.h"
-#include "Engine/Tasks/Task.h"
 
 namespace SteamAudio
 {
+    SaEventAssetHandler::SaEventAssetHandler()
+        : Base("SteamAudio Event", "Sound", SaEventAsset::Extension)
+    {
+    }
+
     void SaEventAssetHandler::InitAsset(
         AZ::Data::Asset<AZ::Data::AssetData> const& asset, bool loadStageSucceeded, bool isReload)
     {
-        auto* const eventAsset{ asset.GetAs<SaEventAsset>() };
+        if (loadStageSucceeded)
+        {
+            auto* const eventAsset{ asset.GetAs<SaEventAsset>() };
 
-        AZStd::ranges::for_each(
-            eventAsset->GetTasksDefinitions(),
-            [](TaskDefinition taskDef)
-            {
-                taskDef.m_config.m_asset.QueueLoad();
-                taskDef.m_config.m_asset.BlockUntilLoadComplete();
-            });
+            AZStd::ranges::for_each(
+                eventAsset->GetSoundSourceAssets(),
+                [](auto& soundSourceAsset)
+                {
+                    // soundSourceAsset->LoadSoundSourceDeps();
+                });
+        }
 
-        SaEventAssetGenericHandler::InitAsset(asset, loadStageSucceeded, isReload);
+        Base::InitAsset(asset, loadStageSucceeded, isReload);
     };
 }  // namespace SteamAudio

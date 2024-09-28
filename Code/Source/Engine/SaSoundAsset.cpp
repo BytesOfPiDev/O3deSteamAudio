@@ -19,8 +19,8 @@ namespace SteamAudio
     {
         if (auto* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serialize->Class<SaSoundAsset, AZ::Data::AssetData>()->Version(1)->Field(
-                "Buffer", &SaSoundAsset::m_data);
+            serialize->Class<SaSoundAsset, AssetData>()->Version(1)->Field(
+                "Buffer", &SaSoundAsset::m_audioData);
 
             serialize->RegisterGenericType<AZ::Data::Asset<SaSoundAsset>>();
 
@@ -30,6 +30,8 @@ namespace SteamAudio
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute("AutoExpand", true);
             }
+
+            serialize->RegisterGenericType<SaSoundAsset>();
         }
     }
 
