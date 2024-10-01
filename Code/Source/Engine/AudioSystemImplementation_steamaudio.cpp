@@ -359,12 +359,30 @@ namespace SteamAudio
     }
 
     auto AudioSystemImpl_steamaudio::SetPosition(
-        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLAudioObjectData* const audioObjectData,
         [[maybe_unused]] Audio::SATLWorldPosition const& worldPosition)
         -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: SetPosition.\n");
-        return Audio::EAudioRequestStatus::Failure;
+        auto const* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(
+            audioObjectData) };
+
+        AZ_Error(
+            AZ_FUNCTION_SIGNATURE, implObjectData, "Audio object is null - SetPosition will fail");
+
+        AZ_Error(
+            AZ_FUNCTION_SIGNATURE,
+            SaAudioObjectRequestBus::HasHandlers(implObjectData->GetId()),
+            "No audio object is listening - SetPosition will fail");
+
+        if (!implObjectData || !SaAudioObjectRequestBus::HasHandlers(implObjectData->GetId()))
+        {
+            return Audio::EAudioRequestStatus::Failure;
+        }
+
+        SaAudioObjectRequestBus::Event(
+            implObjectData->GetId(), &SaAudioObjectRequests::SetPosition, worldPosition);
+
+        return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::SetMultiplePositions(

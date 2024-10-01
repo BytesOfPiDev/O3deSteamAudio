@@ -1,4 +1,4 @@
-#include "Engine/AudioObject.h"
+#include "Engine/SaAudioObject.h"
 
 #include "AudioAllocators.h"
 #include "AzCore/Console/ILogger.h"
@@ -114,6 +114,16 @@ namespace SteamAudio
             [&instanceId](SaEvent const& event) -> bool
             {
                 return (event.GetEventInstanceId() == instanceId);
+            });
+    }
+
+    void SaAudioObject::SetPosition(Audio::SATLWorldPosition const& worldPosition)
+    {
+        AZStd::ranges::for_each(
+            m_events,
+            [&worldPosition](SaEvent& event)
+            {
+                event.SetPosition(worldPosition);
             });
     }
 }  // namespace SteamAudio

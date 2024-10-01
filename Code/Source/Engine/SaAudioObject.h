@@ -54,6 +54,8 @@ namespace SteamAudio
 
         void PopEvent(EventIter);
 
+        void SetPosition(Audio::SATLWorldPosition const& worldPosition) override;
+
     private:
         AZStd::vector<SaEvent> m_events;
         SaAudioObjectId m_gameObjectId{};
@@ -61,8 +63,3 @@ namespace SteamAudio
     };
 
 }  // namespace SteamAudio
-
-namespace AZStd
-{
-
-}

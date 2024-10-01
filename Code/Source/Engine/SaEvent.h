@@ -1,11 +1,11 @@
 #pragma once
 
 #include "AzCore/Asset/AssetCommon.h"
-#include "Engine/Sound.h"
 #include "IAudioInterfacesCommonData.h"
 
-#include "Engine/AudioObject.h"
 #include "Engine/Id.h"
+#include "Engine/SaAudioObject.h"
+#include "Engine/SaSoundInstance.h"
 
 namespace SteamAudio
 {
@@ -56,6 +56,7 @@ namespace SteamAudio
 
         void StartEvent();
         void StopEvent();
+        void SetPosition(Audio::SATLWorldPosition const& worldPosition);
 
     private:
         SaAudioEventState m_eventState{};

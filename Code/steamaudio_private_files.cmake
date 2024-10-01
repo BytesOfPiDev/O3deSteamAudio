@@ -17,8 +17,6 @@ set(FILES
     Source/Engine/AudioSource.h
     Source/Engine/AudioSourceManager.cpp
     Source/Engine/AudioSourceManager.h
-    Source/Engine/AudioObject.cpp
-    Source/Engine/AudioObject.h
     Source/Engine/AudioSystemImplementation_steamaudio.cpp
     Source/Engine/AudioSystemImplementation_steamaudio.h
     Source/Engine/Common_steamaudio.h
@@ -28,6 +26,8 @@ set(FILES
     Source/Engine/MaSoundEngine.cpp
     Source/Engine/MaSoundEngine.h
     Source/Engine/Parameters.h
+    Source/Engine/SaAudioObject.cpp
+    Source/Engine/SaAudioObject.h
     Source/Engine/SaAudioObjectBus.h
     Source/Engine/SaEvent.cpp
     Source/Engine/SaEvent.h
@@ -40,12 +40,8 @@ set(FILES
     Source/Engine/SaRegisteredEventBus.h
     Source/Engine/SaSoundAsset.cpp
     Source/Engine/SaSoundAsset.h
-    Source/Engine/Sound.cpp
-    Source/Engine/Sound.h
-    Source/Engine/SoundBankAssetHandler.cpp
-    Source/Engine/SoundBankAssetHandler.h
-    Source/Engine/SoundConfig.cpp
-    Source/Engine/SoundConfig.h
+    Source/Engine/SaSoundInstance.cpp
+    Source/Engine/SaSoundInstance.h
     Source/Engine/SaSoundSource.cpp
     Source/Engine/SaSoundSource.h
     Source/Engine/SaSoundSourceAsset.cpp
@@ -53,6 +49,10 @@ set(FILES
     Source/Engine/SaSoundSourceAssetHandler.cpp
     Source/Engine/SaSoundSourceAssetHandler.h
     Source/Engine/SaSoundSourceBus.h
+    Source/Engine/SoundBankAssetHandler.cpp
+    Source/Engine/SoundBankAssetHandler.h
+    Source/Engine/SoundConfig.cpp
+    Source/Engine/SoundConfig.h
     Source/Engine/SoundSourceLoader.cpp
     Source/Engine/SoundSourceLoader.h
 

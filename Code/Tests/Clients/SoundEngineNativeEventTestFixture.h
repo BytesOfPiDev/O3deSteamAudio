@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 
 #include "Clients/BaseTestFixture.h"
-#include "Engine/AudioObject.h"
 #include "Engine/MaSoundEngine.h"
+#include "Engine/SaAudioObject.h"
 #include "IAudioInterfacesCommonData.h"
 
 class SoundEngineNativeEvents : public BaseTestFixture

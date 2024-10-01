@@ -3,11 +3,12 @@
 #include <AzCore/Asset/AssetSerializer.h>
 
 #include "AzCore/base.h"
+#include "Engine/SaAudioObjectBus.h"
 #include "SteamAudio/MiniAudio.h"
 
 namespace SteamAudio
 {
-    class SoundInstance
+    class SoundInstance : protected SaAudioObjectNotificationBus::Handler
     {
     public:
         AZ_DISABLE_COPY_MOVE(SoundInstance);
@@ -15,8 +16,9 @@ namespace SteamAudio
         ~SoundInstance();
 
         void Start();
-
         void Stop();
+
+        void SetPosition(Audio::SATLWorldPosition const& worldPosition);
 
     private:
         AZStd::unique_ptr<ma_sound> m_sound{};

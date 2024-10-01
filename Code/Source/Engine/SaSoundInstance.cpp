@@ -1,4 +1,4 @@
-#include "Engine/Sound.h"
+#include "Engine/SaSoundInstance.h"
 
 #include "AzCore/Console/ILogger.h"
 
@@ -45,12 +45,15 @@ namespace SteamAudio
 
     void SoundInstance::Start()
     {
-        AZLOG(LOG_ma_sound_start, "SOUND INSTANCE START");
         ma_sound_start(m_sound.get());
     }
     void SoundInstance::Stop()
     {
-        AZLOG(LOG_ma_sound_stop, "SOUND INSTANCE STOP");
         ma_sound_stop(m_sound.get());
+    }
+    void SoundInstance::SetPosition(Audio::SATLWorldPosition const& worldPosition)
+    {
+        auto const pos{ worldPosition.GetPositionVec() };
+        ma_sound_set_position(m_sound.get(), pos.GetX(), pos.GetY(), pos.GetZ());
     }
 }  // namespace SteamAudio

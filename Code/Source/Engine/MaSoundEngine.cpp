@@ -371,9 +371,18 @@ namespace SteamAudio
 
     auto MaSoundEngine::RegisterAudioObject(SaAudioObjectId const& objectId) -> EngineNullOutcome
     {
+        if (SaAudioObjectRequestBus::HasHandlers(objectId))
+        {
+            return AZ::Failure("Object id is already in use");
+        }
+
         m_registeredObjects.insert({ objectId, aznew SaAudioObject{ objectId } });
 
-        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Not implemented.");
-        return AZ::Failure("Not implemented.");
+        if (!SaAudioObjectRequestBus::HasHandlers(objectId))
+        {
+            return AZ::Failure("Expected connection to bus did not occur");
+        }
+
+        return AZ::Success();
     }
 }  // namespace SteamAudio

@@ -6,7 +6,7 @@
 
 #include "Engine/Id.h"
 #include "Engine/SaEventAsset.h"
-#include "Engine/Sound.h"
+#include "Engine/SaSoundInstance.h"
 
 namespace SteamAudio
 {
@@ -132,4 +132,14 @@ namespace SteamAudio
             "SaEvent ['%llu'] stopped",
             static_cast<Audio::TAudioTriggerInstanceID>(m_eventInstanceId));
     };
+
+    void SaEvent::SetPosition(Audio::SATLWorldPosition const& worldPosition)
+    {
+        AZStd::ranges::for_each(
+            m_soundInstances,
+            [&worldPosition](auto const& soundInstance)
+            {
+                soundInstance->SetPosition(worldPosition);
+            });
+    }
 }  // namespace SteamAudio

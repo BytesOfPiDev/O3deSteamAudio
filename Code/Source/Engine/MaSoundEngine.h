@@ -5,10 +5,10 @@
 #include "AudioAllocators.h"
 #include "AzCore/std/any.h"
 
-#include "Engine/AudioObject.h"
 #include "Engine/Common_steamaudio.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
+#include "Engine/SaAudioObject.h"
 #include "Engine/SaRegisteredEvent.h"
 #include "Engine/SoundSourceLoader.h"
 

@@ -3,6 +3,7 @@
 #include "AzCore/EBus/EBus.h"
 
 #include "Engine/Id.h"
+#include "IAudioInterfacesCommonData.h"
 
 namespace SteamAudio
 {
@@ -17,6 +18,8 @@ namespace SteamAudio
         virtual auto PushEvent(SaEventId eventId) -> SaEventInstanceId = 0;
         virtual void PopEventByEventId(SaEventId eventId) = 0;
         virtual void PopEventByInstanceId(SaEventInstanceId instanceId) = 0;
+
+        virtual void SetPosition(Audio::SATLWorldPosition const& worldPosition) = 0;
     };
 
     struct SaAudioObjectRequestBusTraits : public AZ::EBusTraits
@@ -36,8 +39,8 @@ namespace SteamAudio
         SaAudioObjectNotifications() = default;
         virtual ~SaAudioObjectNotifications() = default;
 
-        virtual void OnUpdate(float dt) = 0;
-        virtual void OnStop() = 0;
+        virtual void OnUpdate(float /*dt*/) {};
+        virtual void OnStop() {};
     };
 
     struct SaAudioObjectNotificationBusTraits : public AZ::EBusTraits
@@ -47,5 +50,7 @@ namespace SteamAudio
         using BusIdType = SaAudioObjectId;
     };
 
-    using SaAudioObjectRequestBus = AZ::EBus<SaAudioObjectRequests, SaAudioObjectRequestBusTraits>;
+    using SaAudioObjectNotificationBus =
+        AZ::EBus<SaAudioObjectNotifications, SaAudioObjectNotificationBusTraits>;
+
 }  // namespace SteamAudio
