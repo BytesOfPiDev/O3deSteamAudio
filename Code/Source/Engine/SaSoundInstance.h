@@ -24,5 +24,4 @@ namespace SteamAudio
         AZStd::unique_ptr<ma_sound> m_sound{};
         AZ::Name m_soundName{};
     };
-
 }  // namespace SteamAudio

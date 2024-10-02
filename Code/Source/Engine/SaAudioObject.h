@@ -59,7 +59,6 @@ namespace SteamAudio
     private:
         AZStd::vector<SaEvent> m_events;
         SaAudioObjectId m_gameObjectId{};
-        AZ::EntityId m_entityId{};
     };
 
 }  // namespace SteamAudio

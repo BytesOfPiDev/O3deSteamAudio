@@ -9,7 +9,6 @@
 #include "AzCore/RTTI/TypeInfoSimple.h"
 #include "AzCore/Settings/SettingsRegistry.h"
 #include "AzCore/StringFunc/StringFunc.h"
-#include "Engine/SaAudioObjectBus.h"
 #include "IAudioInterfacesCommonData.h"
 #include "IAudioSystemImplementation.h"
 
@@ -19,6 +18,7 @@
 #include "Engine/Configuration.h"
 #include "Engine/ISoundEngine.h"
 #include "Engine/Id.h"
+#include "Engine/SaAudioObjectBus.h"
 
 namespace SteamAudio
 {
@@ -222,47 +222,43 @@ namespace SteamAudio
     }
 
     auto AudioSystemImpl_steamaudio::UpdateAudioObject(
-        Audio::IATLAudioObjectData* const audioObjectData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/) -> Audio::EAudioRequestStatus
     {
-        AZ_UNUSED(audioObjectData);
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
         return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::PrepareTriggerSync(
-        Audio::IATLAudioObjectData* const audioObjectData,
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
         Audio::IATLTriggerImplData const* const /*triggerData*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: PrepareTriggerSync.\n");
-        AZ_UNUSED(audioObjectData);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
     auto AudioSystemImpl_steamaudio::UnprepareTriggerSync(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLTriggerImplData const* const triggerData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLTriggerImplData const* const /*triggerData*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: UnprepareTriggerSync.\n");
-        AZ_UNUSED(audioObjectData, triggerData);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::PrepareTriggerAsync(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLTriggerImplData const* const triggerData,
-        Audio::IATLEventData* const eventData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLTriggerImplData const* const /*triggerData*/,
+        Audio::IATLEventData* const /*eventData*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: PrepareTriggerAsync.\n");
-        AZ_UNUSED(audioObjectData, triggerData, eventData);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::UnprepareTriggerAsync(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLTriggerImplData const* const triggerData,
-        Audio::IATLEventData* const eventData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLTriggerImplData const* const /*triggerData*/,
+        Audio::IATLEventData* const /*eventData*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: UnprepareTriggerAsync.\n");
-        AZ_UNUSED(audioObjectData, triggerData, eventData);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::ActivateTrigger(
@@ -312,10 +308,8 @@ namespace SteamAudio
         }
 
         implEventData->ChangeAtlEventState(Audio::EAudioEventState::eAES_PLAYING);
-        // FIXME: Actually set the id
 
         result = Audio::EAudioRequestStatus::Success;
-
         return result;
     }
 
@@ -390,81 +384,75 @@ namespace SteamAudio
         Audio::MultiPositionParams const& multiPositionParams) -> Audio::EAudioRequestStatus
     {
         AZLOG(LOG_asi_steamaudio, "BopAudio: SetMultiplePositions.\n");
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
         AZ_UNUSED(audioObjectData, multiPositionParams);
-        return Audio::EAudioRequestStatus::Success;
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::SetEnvironment(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLEnvironmentImplData const* const environmentData,
-        float const amount) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLEnvironmentImplData const* const /*environmentData*/,
+        float const /*amount*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: SetEnvironment.\n");
-        AZ_UNUSED(audioObjectData, environmentData, amount);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::SetRtpc(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLRtpcImplData const* const rtpcData,
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLRtpcImplData const* const /*rtpcData*/,
         float const value) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: SetRtpc.\n");
-        AZ_UNUSED(audioObjectData, rtpcData, value);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::SetSwitchState(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLSwitchStateImplData const* const switchStateData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLSwitchStateImplData const* const /*switchStateData*/)
+        -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: SetSwitchState.\n");
-        AZ_UNUSED(audioObjectData, switchStateData);
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
         return Audio::EAudioRequestStatus::Success;
     }
 
     auto AudioSystemImpl_steamaudio::SetObstructionOcclusion(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        float const obstruction,
-        float const occlusion) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        float const /*obstruction*/,
+        float const /*occlusion*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: SetObstructionOcclusion.\n");
-        AZ_UNUSED(audioObjectData, obstruction, occlusion);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::SetListenerPosition(
-        Audio::IATLListenerData* const listenerData,
-        Audio::SATLWorldPosition const& newPosition) -> Audio::EAudioRequestStatus
+        Audio::IATLListenerData* const /*listenerData*/,
+        Audio::SATLWorldPosition const& /*newPosition*/) -> Audio::EAudioRequestStatus
     {
-        AZ_UNUSED(listenerData, newPosition);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_ErrorOnce(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::ResetRtpc(
-        Audio::IATLAudioObjectData* const audioObjectData,
-        Audio::IATLRtpcImplData const* const rtpcData) -> Audio::EAudioRequestStatus
+        Audio::IATLAudioObjectData* const /*audioObjectData*/,
+        Audio::IATLRtpcImplData const* const /*rtpcData*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "BopAudio: ResetRtpc.\n");
-        AZ_UNUSED(audioObjectData, rtpcData);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::RegisterInMemoryFile(
         Audio::SATLAudioFileEntryInfo* const /*audioFileEntry*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "%s is registering an in-memory file.\n", TYPEINFO_Name());
-
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
         return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::UnregisterInMemoryFile(
-        Audio::SATLAudioFileEntryInfo* const audioFileEntry) -> Audio::EAudioRequestStatus
+        Audio::SATLAudioFileEntryInfo* const /*audioFileEntry*/) -> Audio::EAudioRequestStatus
     {
-        AZLOG(LOG_asi_steamaudio, "%s is unregistering an in-memory file.\n", TYPEINFO_Name());
-
-        AZ_UNUSED(audioFileEntry);
-        return Audio::EAudioRequestStatus::Success;
+        AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
+        return Audio::EAudioRequestStatus::Failure;
     }
 
     auto AudioSystemImpl_steamaudio::ParseAudioFileEntry(
