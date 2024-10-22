@@ -26,7 +26,7 @@ TEST_F(SoundEngineTestFixture, Initialized_ReportEvent_PassEmptyEventName_Return
         SteamAudio::SaAudioObjectId{} } };
 
     AZ_TEST_START_TRACE_SUPPRESSION;
-    auto const eventInstanceId{ GetEngine().ReportEvent(nonExistentEventData) };
+    auto const eventInstanceId{ GetEngine().PostEvent(nonExistentEventData) };
     AZ_TEST_STOP_TRACE_SUPPRESSION(1);
     EXPECT_EQ(eventInstanceId, SteamAudio::InvalidEventInstanceId);
     EXPECT_TRUE(GetEngine().Shutdown().IsSuccess());
@@ -40,7 +40,7 @@ TEST_F(SoundEngineTestFixture, Initialized_ReportEvent_PassNonExistentEventName_
         SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
 
     AZ_TEST_START_TRACE_SUPPRESSION;
-    auto const eventInstanceId{ GetEngine().ReportEvent(nonExistentStartEventData) };
+    auto const eventInstanceId{ GetEngine().PostEvent(nonExistentStartEventData) };
     AZ_TEST_STOP_TRACE_SUPPRESSION(2);
 
     EXPECT_EQ(eventInstanceId, SteamAudio::InvalidEventInstanceId);
@@ -55,7 +55,7 @@ TEST_F(SoundEngineNativeEvents, DoNothing_ReportEvent_ReturnsSuccess)
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::DoNothingEventName),
         SteamAudio::GlobalSaGameObjectId } };
 
-    auto const eventInstanceId{ GetSoundEngine().ReportEvent(doNothingStartEventData) };
+    auto const eventInstanceId{ GetSoundEngine().PostEvent(doNothingStartEventData) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }
 
@@ -68,7 +68,7 @@ TEST_F(SoundEngineNativeEvents, MuteAll_ReportEvent_ReturnsSuccess)
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::MuteAllEventName),
         SteamAudio::GlobalSaGameObjectId } };
 
-    auto const eventInstanceId{ GetSoundEngine().ReportEvent(muteAllStartEventName) };
+    auto const eventInstanceId{ GetSoundEngine().PostEvent(muteAllStartEventName) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }
 
@@ -81,7 +81,7 @@ TEST_F(SoundEngineNativeEvents, UnmuteAll_ReportEvent_ReturnsSuccess)
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::UnmuteAllEventName),
         SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
 
-    auto const eventInstanceId{ GetSoundEngine().ReportEvent(unMuteAllStartEventData) };
+    auto const eventInstanceId{ GetSoundEngine().PostEvent(unMuteAllStartEventData) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }
 
@@ -94,7 +94,7 @@ TEST_F(SoundEngineNativeEvents, GetFocus_ReportEvent_ReturnsSuccess)
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::GetFocusEventName),
         SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
 
-    auto const eventInstanceId{ GetSoundEngine().ReportEvent(getFocusStartEventData) };
+    auto const eventInstanceId{ GetSoundEngine().PostEvent(getFocusStartEventData) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }
 
@@ -107,6 +107,6 @@ TEST_F(SoundEngineNativeEvents, LoseFocus_ReportEvent_ReturnsSuccess)
         Audio::AudioStringToID<SteamAudio::SaEventId>(SteamAudio::Events::LoseFocusEventName),
         SteamAudio::SaAudioObjectId{ GLOBAL_AUDIO_OBJECT_ID } } };
 
-    auto const eventInstanceId{ GetSoundEngine().ReportEvent(loseFocusStartEventData) };
+    auto const eventInstanceId{ GetSoundEngine().PostEvent(loseFocusStartEventData) };
     EXPECT_NE(eventInstanceId, SteamAudio::InvalidEventInstanceId);
 }

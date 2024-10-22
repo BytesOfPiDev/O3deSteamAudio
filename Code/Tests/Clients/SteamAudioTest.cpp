@@ -92,7 +92,7 @@ TEST_F(BaseTestFixture, InitializeAudioImpl_ActivateInvalidTriggerUsingValidImpl
 {
     MockSteamAudioEngine mockSoundEngine{};
     EXPECT_CALL(mockSoundEngine, Initialize).Times(1).WillOnce(Return(AZ::Success()));
-    EXPECT_CALL(mockSoundEngine, ReportEvent)
+    EXPECT_CALL(mockSoundEngine, PostEvent)
         .Times(1)
         .WillOnce(Return(SteamAudio::SaEventInstanceId{}));
     EXPECT_CALL(mockSoundEngine, Shutdown).Times(1);

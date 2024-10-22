@@ -87,9 +87,9 @@ namespace SteamAudio
         }
 
         SaEventId() = default;
-        constexpr explicit SaEventId(AZ::Crc32 crc32)
+        explicit SaEventId(AZ::Crc32 crc32)
             : m_value{ crc32 } {};
-        constexpr explicit SaEventId(Audio::TAudioTriggerImplID eventId)
+        explicit SaEventId(Audio::TAudioTriggerImplID eventId)
             : m_value{ eventId } {};
 
         SaEventId(AZStd::string_view eventName)
@@ -102,26 +102,29 @@ namespace SteamAudio
             return m_value;
         }
 
-        constexpr explicit operator size_t() const
+        explicit operator size_t() const
         {
             return m_value;
         }
 
-        constexpr explicit operator Audio::TAudioTriggerImplID() const
+/*
+        explicit operator Audio::TAudioTriggerImplID() const
         {
             return m_value;
         }
+        */
 
-        constexpr auto operator==(SaEventId const& other) const -> bool
+        auto operator==(SaEventId const& other) const -> bool
         {
             return m_value == other.m_value;
         }
-        constexpr auto operator!=(SaEventId const& other) const -> bool
+
+        auto operator!=(SaEventId const& other) const -> bool
         {
             return !operator==(other);
         }
 
-        [[nodiscard]] constexpr auto IsValid() const
+        [[nodiscard]] auto IsValid() const
         {
             return m_value != INVALID_AUDIO_TRIGGER_IMPL_ID;
         }
@@ -131,7 +134,7 @@ namespace SteamAudio
 
     static_assert(AZStd::is_pod<SaEventId>(), "Must be POD");
 
-    static constexpr auto InvalidEventId{ SaEventId{ INVALID_AUDIO_TRIGGER_IMPL_ID } };
+    static auto InvalidEventId{ SaEventId{ INVALID_AUDIO_TRIGGER_IMPL_ID } };
 
     struct SaEventInstanceId
     {
@@ -148,10 +151,10 @@ namespace SteamAudio
         }
 
         SaEventInstanceId() = default;
-        constexpr explicit SaEventInstanceId(AZ::Crc32 crc32)
+        explicit SaEventInstanceId(AZ::Crc32 crc32)
             : m_value{ crc32 } {};
 
-        constexpr explicit SaEventInstanceId(Audio::TAudioTriggerInstanceID eventInstanceId)
+        explicit SaEventInstanceId(Audio::TAudioTriggerInstanceID eventInstanceId)
             : m_value{ eventInstanceId } {};
 
         constexpr operator Audio::TAudioTriggerInstanceID() const
@@ -162,7 +165,7 @@ namespace SteamAudio
         Audio::TAudioTriggerInstanceID m_value;
     };
 
-    static constexpr auto InvalidEventInstanceId{ SaEventInstanceId{
+    static auto const InvalidEventInstanceId{ SaEventInstanceId{
         INVALID_AUDIO_TRIGGER_INSTANCE_ID } };
 
     namespace Events

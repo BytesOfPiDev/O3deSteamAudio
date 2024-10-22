@@ -42,7 +42,7 @@ namespace SteamAudio
 
     MaSoundEngine::~MaSoundEngine()
     {
-        Shutdown();
+        MaSoundEngine::Shutdown();
         AZ::Interface<ISoundEngine>::Unregister(this);
     }
 
@@ -261,7 +261,7 @@ namespace SteamAudio
         }
     }
 
-    auto MaSoundEngine::ReportEvent(StartEventData const& startEventData) -> SaEventInstanceId
+    auto MaSoundEngine::PostEvent(StartEventData const& startEventData) -> SaEventInstanceId
     {
         if (!startEventData.IsValid())
         {
@@ -274,7 +274,7 @@ namespace SteamAudio
             AZ_Error(
                 "MaSoundEngine",
                 SaAudioObjectRequestBus::HasHandlers(startEventData.m_gameObjectId),
-                "ReportEvent: no audio object request handler found w/ id '%llu'",
+                "PostEvent: no audio object request handler found w/ id '%llu'",
                 startEventData.m_gameObjectId);
 
             auto result{ decltype(eventInstanceId){} };

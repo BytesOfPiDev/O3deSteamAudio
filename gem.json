@@ -15,7 +15,7 @@
         "SteamAudio"
     ],
     "platforms": [
-        "Linux"
+        "Linux", "Windows"
     ],
     "icon_path": "",
     "requirements": "",

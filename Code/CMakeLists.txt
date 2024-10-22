@@ -21,17 +21,26 @@ include(FetchContent)
 
 include(${gem_path}/3rdParty/FindSteamAudio.cmake)
 
+fetchcontent_declare(
+    miniaudio_header
+    URL       https://raw.githubusercontent.com/mackron/miniaudio/4a5b74bef029b3592c54b6048650ee5f972c1a48/miniaudio.h
+    URL_HASH  MD5=dfb25d11261ac12922c741dd3ea057d6
+    DOWNLOAD_NO_EXTRACT TRUE
+    DOWNLOAD_DIR ${gem_path}/3rdParty/miniaudio
+)
+
+fetchcontent_makeavailable(miniaudio_header)
+
 ly_add_target(
     NAME ${gem_name}.MiniAudio.API INTERFACE
     NAMESPACE Gem
-    BUILD_DEPENDENCIES
-      INTERFACE
-        3rdParty::miniaudio
-
+    FILES_CMAKE
+        steamaudio_miniaudio_files.cmake
+    INCLUDE_DIRECTORIES
+        SYSTEM
+            INTERFACE
+                ${gem_path}/3rdParty/miniaudio
 )
-
-target_include_directories(${gem_name}.MiniAudio.API SYSTEM INTERFACE ${miniaudio_v11_21_SOURCE_DIR})
-
 
 # The ${gem_name}.API target declares the common interface that users of this gem should depend on in their targets
 ly_add_target(
@@ -65,12 +74,11 @@ ly_add_target(
             Source
     BUILD_DEPENDENCIES
         PUBLIC
-            ${gem_name}.MiniAudio.API
             AZ::AzCore
             AZ::AzFramework
             Gem::AudioSystem
-            3rdParty::miniaudio
             3rdParty::SteamAudio
+            ${gem_name}.MiniAudio.API
 
 )
 
@@ -89,7 +97,6 @@ ly_add_target(
     BUILD_DEPENDENCIES
         PUBLIC
             Gem::${gem_name}.API
-            3rdParty::miniaudio
         PRIVATE
             Gem::${gem_name}.Private.Object
 )
@@ -167,6 +174,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         BUILD_DEPENDENCIES
             INTERFACE
                 AZ::AzToolsFramework
+                Gem::${gem_name}.API
     )
 
   # The ${gem_name}.Editor.Private.Object target is an internal target
@@ -186,7 +194,6 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         BUILD_DEPENDENCIES
             PUBLIC
                 Gem::${gem_name}.Private.Object
-                Gem::${gem_name}.MiniAudio.API
                 AZ::AzFramework
                 AZ::AzCore
                 AZ::AssetBuilderSDK
@@ -194,7 +201,6 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 Gem::AudioSystem.Editor
                 Gem::AudioSystem.Editor.API
                 Legacy::CryCommon
-                3rdParty::miniaudio
     )
 
   ly_add_target(
@@ -220,9 +226,6 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
             PRIVATE
                 Gem::${gem_name}.Private.Object
                 Gem::${gem_name}.Editor.Private.Object
-                3rdParty::miniaudio
-        RUNTIME_DEPENDENCIES
-            3rdParty::miniaudio
     )
 
   # Include the gem name into the Editor Module source file
@@ -282,7 +285,6 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                     Gem::AudioSystem
                     Gem::${gem_name}.Private.Object
                     Legacy::CryCommon
-                    3rdParty::miniaudio
         )
 
     # Add ${gem_name}.Tests to googletest
@@ -315,9 +317,6 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                         AZ::AzTest
                         AZ::AzToolsFrameworkTestCommon
                         Legacy::CryCommon
-                        3rdParty::miniaudio
-
-
             )
 
       # Add ${gem_name}.Editor.Tests to googletest

@@ -18,7 +18,7 @@ namespace SteamAudio
 
             AZStd::ranges::for_each(
                 eventAsset->GetSoundSourceAssets(),
-                [](auto& soundSourceAsset)
+                [](auto& /*soundSourceAsset*/)
                 {
                     // soundSourceAsset->LoadSoundSourceDeps();
                 });

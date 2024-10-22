@@ -204,7 +204,7 @@ namespace SteamAudio
                     // same content (in the future we want to have a
                     // consistency report to highlight if this is not the case)
                     m_localizationFolder.assign(fileName.Native().data(), fileName.Native().size());
-                    LoadSoundBanks({ searchPath.Native() }, m_localizationFolder, true);
+                    LoadSoundBanks(searchPath.String(), m_localizationFolder, true);
                     isLocalizedLoaded = true;
                 }
             }
