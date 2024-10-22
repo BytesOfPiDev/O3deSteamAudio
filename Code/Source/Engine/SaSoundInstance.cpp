@@ -2,7 +2,6 @@
 
 #include "AzCore/Console/ILogger.h"
 
-#include "SteamAudio/MiniAudio.h"
 #include "SteamAudio/Util.h"
 
 namespace SteamAudio
@@ -47,10 +46,18 @@ namespace SteamAudio
     {
         ma_sound_start(m_sound.get());
     }
+
     void SoundInstance::Stop()
     {
         ma_sound_stop(m_sound.get());
     }
+
+    void SoundInstance::Reset()
+    {
+        Stop();
+        ma_sound_seek_to_pcm_frame(m_sound.get(), 0);
+    }
+
     void SoundInstance::SetPosition(Audio::SATLWorldPosition const& worldPosition)
     {
         auto const pos{ worldPosition.GetPositionVec() };

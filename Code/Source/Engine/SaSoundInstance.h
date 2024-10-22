@@ -2,6 +2,8 @@
 
 #include <AzCore/Asset/AssetSerializer.h>
 
+#include "AzCore/std/smart_ptr/unique_ptr.h"
+
 #include "AzCore/base.h"
 #include "Engine/SaAudioObjectBus.h"
 #include "SteamAudio/MiniAudio.h"
@@ -17,6 +19,7 @@ namespace SteamAudio
 
         void Start();
         void Stop();
+        void Reset();
 
         void SetPosition(Audio::SATLWorldPosition const& worldPosition);
 

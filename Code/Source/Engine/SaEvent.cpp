@@ -115,6 +115,7 @@ namespace SteamAudio
     {
         if (m_eventInstanceId == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
+            AZLOG_ERROR("Stop event called on event w/ invalid instance id");
             return;
         }
 

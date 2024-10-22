@@ -64,7 +64,7 @@ namespace SteamAudio
             return m_name;
         }
 
-        [[nodiscard]] constexpr auto GetEventId() const -> SaEventId
+        [[nodiscard]] auto GetEventId() const -> SaEventId
         {
             return m_eventId;
         }
@@ -73,7 +73,7 @@ namespace SteamAudio
         {
         }
 
-        constexpr auto IsValid() const -> bool
+        auto IsValid() const -> bool
         {
             return m_eventId.IsValid();
         }

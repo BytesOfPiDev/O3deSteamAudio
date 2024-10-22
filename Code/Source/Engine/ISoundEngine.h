@@ -71,7 +71,7 @@ namespace SteamAudio
             return {};
         }
 
-        [[nodiscard]] virtual auto ReportEvent(StartEventData const&) -> SaEventInstanceId
+        [[nodiscard]] virtual auto PostEvent(StartEventData const&) -> SaEventInstanceId
         {
             return {};
         }

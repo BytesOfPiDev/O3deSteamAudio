@@ -44,7 +44,7 @@ namespace SteamAudio
         auto RegisterAudioObject(SaAudioObjectId const& /*audioObject*/)
             -> EngineNullOutcome override;
 
-        auto ReportEvent(StartEventData const&) -> SaEventInstanceId override;
+        [[nodiscard]] virtual auto PostEvent(StartEventData const&) -> SaEventInstanceId;
 
     protected:
         auto InitMiniAudio() -> EngineNullOutcome;

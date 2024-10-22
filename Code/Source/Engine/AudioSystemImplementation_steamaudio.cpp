@@ -299,7 +299,7 @@ namespace SteamAudio
             return Audio::EAudioRequestStatus::Failure;
         }
 
-        implEventData->SetInstanceId(m_engine->ReportEvent(startEventData));
+        implEventData->SetInstanceId(m_engine->PostEvent(startEventData));
 
         if (implEventData->GetInstanceId() == INVALID_AUDIO_TRIGGER_INSTANCE_ID)
         {
@@ -326,7 +326,7 @@ namespace SteamAudio
         }
 
         auto* const implObjectData{ static_cast<SATLAudioObjectData_steamaudio*>(audioObjectData) };
-        auto* implEventData{ static_cast<SATLEventData_steamaudio const*>(eventData) };
+        auto* const implEventData{ static_cast<SATLEventData_steamaudio const*>(eventData) };
 
         if (!SaAudioObjectRequestBus::HasHandlers(implObjectData->GetId()))
         {
@@ -401,7 +401,7 @@ namespace SteamAudio
     auto AudioSystemImpl_steamaudio::SetRtpc(
         Audio::IATLAudioObjectData* const /*audioObjectData*/,
         Audio::IATLRtpcImplData const* const /*rtpcData*/,
-        float const value) -> Audio::EAudioRequestStatus
+        float const /*value*/) -> Audio::EAudioRequestStatus
     {
         AZ_Error(AZ_FUNCTION_SIGNATURE, false, "Unimplemented");
         return Audio::EAudioRequestStatus::Failure;
